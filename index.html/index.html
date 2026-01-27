@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Online Chess with Join Code</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #board { display: grid; grid-template-columns: repeat(8, 50px); grid-template-rows: repeat(8, 50px); margin: 20px auto; }
+        .cell { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer; }
+        .white { background-color: #f0d9b5; }
+        .black { background-color: #b58863; }
+        input, button { margin: 5px; padding: 5px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h1>Online Chess</h1>
+    
+    <div>
+        <button onclick="createGame()">Create New Game</button>
+        <input type="text" id="joinCodeInput" placeholder="Enter Game Code">
+        <button onclick="joinGame()">Join Game</button>
+    </div>
+    
+    <h3 id="gameInfo"></h3>
+    
+    <div id="board"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase configuration (replace with your own)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let roomCode = '';
+        let playerColor = '';
+        let board = [];
+        const boardDiv = document.getElementById('board');
+
+        const initialBoard = [
+            ['♖','♘','♗','♕','♔','♗','♘','♖'],
+            ['♙','♙','♙','♙','♙','♙','♙','♙'],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['♟','♟','♟','♟','♟','♟','♟','♟'],
+            ['♜','♞','♝','♛','♚','♝','♞','♜']
+        ];
+
+        function drawBoard() {
+            boardDiv.innerHTML = '';
+            for(let i=0;i<8;i++){
+                for(let j=0;j<8;j++){
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.classList.add((i+j)%2===0 ? 'white':'black');
+                    cell.textContent = board[i][j];
+                    boardDiv.appendChild(cell);
+                }
+            }
+        }
+
+        function generateCode(){
+            return Math.random().toString(36).substring(2,8).toUpperCase();
+        }
+
+        function createGame(){
+            roomCode = generateCode();
+            playerColor = 'white';
+            board = JSON.parse(JSON.stringify(initialBoard));
+            drawBoard();
+            document.getElementById('gameInfo').textContent = `Game Created! Code: ${roomCode} (You are White)`;
+
+            db.ref('games/'+roomCode).set({
+                board: board,
+                turn: 'white',
+                players: {white:true, black:false}
+            });
+        }
+
+        function joinGame(){
+            roomCode = document.getElementById('joinCodeInput').value.toUpperCase();
+            if(!roomCode) return alert('Enter a code!');
+            
+            const gameRef = db.ref('games/'+roomCode);
+            gameRef.get().then(snapshot=>{
+                if(snapshot.exists()){
+                    const data = snapshot.val();
+                    if(data.players.black){
+                        alert('Room full!');
+                        return;
+                    }
+                    playerColor = 'black';
+                    board = data.board;
+                    drawBoard();
+                    document.getElementById('gameInfo').textContent = `Joined Game! (You are Black)`;
+
+                    // Mark black player as joined
+                    gameRef.child('players/black').set(true);
+                } else {
+                    alert('Invalid Code!');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
