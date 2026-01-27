@@ -507,6 +507,21 @@
             background: #f8f9fa;
             transform: scale(1.1);
         }
+        
+        /* Confirmation Modal */
+        .confirmation-modal .modal-buttons {
+            margin-top: 15px;
+        }
+        
+        .yes-btn {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .no-btn {
+            background: #6c757d;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -587,8 +602,8 @@
                     </div>
                     
                     <div class="game-controls">
-                        <button class="control-btn undo-btn" onclick="requestUndoMove()">Undo</button>
-                        <button class="control-btn reset-btn" onclick="requestResetGame()">Reset</button>
+                        <button class="control-btn undo-btn" onclick="undoMove()">Undo</button>
+                        <button class="control-btn reset-btn" onclick="resetGame()">Reset</button>
                     </div>
                 </div>
                 
@@ -619,18 +634,6 @@
         </div>
     </div>
     
-    <!-- Password Modal -->
-    <div class="modal" id="passwordModal">
-        <div class="modal-content">
-            <h2>Enter Password</h2>
-            <input type="password" id="passwordInput" placeholder="Password" autocomplete="off">
-            <div class="modal-buttons">
-                <button class="modal-btn submit-btn" onclick="checkPassword()">OK</button>
-                <button class="modal-btn cancel-btn" onclick="closePasswordModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-    
     <!-- Promotion Modal -->
     <div class="modal" id="promotionModal">
         <div class="modal-content">
@@ -652,54 +655,98 @@
             <button class="modal-btn submit-btn" onclick="resetToSetup()">New Game</button>
         </div>
     </div>
+    
+    <!-- Confirmation Modal -->
+    <div class="modal confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <h2 id="confirmationTitle">Confirm Action</h2>
+            <p id="confirmationMessage"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn yes-btn" onclick="confirmAction(true)">Yes</button>
+                <button class="modal-btn no-btn" onclick="confirmAction(false)">No</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Constants
-        const PASSWORD = "akI-212$";
-        let pendingAction = null;
         let chessGame = null;
+        let pendingAction = null;
         
-        // Password Functions
-        function requestUndoMove() {
-            pendingAction = 'undo';
-            showPasswordModal();
-        }
-        
-        function requestResetGame() {
-            pendingAction = 'reset';
-            showPasswordModal();
-        }
-        
-        function showPasswordModal() {
-            document.getElementById('passwordModal').style.display = 'flex';
-            document.getElementById('passwordInput').focus();
-            document.getElementById('passwordInput').value = '';
-        }
-        
-        function closePasswordModal() {
-            document.getElementById('passwordModal').style.display = 'none';
-            pendingAction = null;
-        }
-        
-        function checkPassword() {
-            const input = document.getElementById('passwordInput').value;
+        // Game Initialization
+        function startGame() {
+            const whitePlayerName = document.getElementById('whitePlayerName').value.trim() || "Player 1";
+            const blackPlayerName = document.getElementById('blackPlayerName').value.trim() || "Player 2";
             
-            if (input === PASSWORD) {
-                closePasswordModal();
-                
-                if (pendingAction === 'undo' && chessGame) {
-                    chessGame.undoMove();
-                } else if (pendingAction === 'reset' && chessGame) {
-                    chessGame.resetGame();
-                }
-            } else {
-                alert("Wrong password!");
-                document.getElementById('passwordInput').value = '';
-                document.getElementById('passwordInput').focus();
+            document.getElementById('whitePlayerDisplay').textContent = whitePlayerName;
+            document.getElementById('blackPlayerDisplay').textContent = blackPlayerName;
+            
+            document.getElementById('setupScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            chessGame = new ChessGame(whitePlayerName, blackPlayerName);
+        }
+        
+        function choosePromotion(pieceType) {
+            if (chessGame) {
+                chessGame.choosePromotion(pieceType);
             }
         }
         
-        // Chess Game Engine with Visual Hints
+        function resetToSetup() {
+            document.getElementById('gameOverModal').style.display = 'none';
+            document.getElementById('setupScreen').style.display = 'block';
+            document.getElementById('gameScreen').style.display = 'none';
+            chessGame = null;
+        }
+        
+        // Control Functions - FIXED
+        function undoMove() {
+            if (!chessGame) return;
+            
+            if (chessGame.moveHistory.length === 0) {
+                alert("No moves to undo!");
+                return;
+            }
+            
+            showConfirmation("Undo Last Move", "Are you sure you want to undo the last move?", 'undo');
+        }
+        
+        function resetGame() {
+            if (!chessGame) return;
+            
+            if (chessGame.moveHistory.length === 0 && chessGame.capturedPieces.white.length === 0 && chessGame.capturedPieces.black.length === 0) {
+                chessGame.resetGame();
+                return;
+            }
+            
+            showConfirmation("Reset Game", "Are you sure you want to reset the game? All progress will be lost.", 'reset');
+        }
+        
+        function showConfirmation(title, message, action) {
+            pendingAction = action;
+            document.getElementById('confirmationTitle').textContent = title;
+            document.getElementById('confirmationMessage').textContent = message;
+            document.getElementById('confirmationModal').style.display = 'flex';
+        }
+        
+        function confirmAction(confirmed) {
+            document.getElementById('confirmationModal').style.display = 'none';
+            
+            if (!confirmed || !chessGame) {
+                pendingAction = null;
+                return;
+            }
+            
+            if (pendingAction === 'undo') {
+                chessGame.undoMove();
+            } else if (pendingAction === 'reset') {
+                chessGame.resetGame();
+            }
+            
+            pendingAction = null;
+        }
+        
+        // Chess Game Engine
         class ChessGame {
             constructor(whitePlayerName, blackPlayerName) {
                 this.whitePlayerName = whitePlayerName;
@@ -826,14 +873,11 @@
                 this.updateVisualHints();
             }
             
-            // Add visual move hints to the board
             updateVisualHints() {
-                // Remove existing hints
                 document.querySelectorAll('.move-hint, .danger-hint').forEach(hint => hint.remove());
                 
                 if (!this.gameActive) return;
                 
-                // Show all legal moves for selected piece
                 if (this.selectedPiece) {
                     this.legalMoves.forEach(move => {
                         const square = document.querySelector(
@@ -844,9 +888,7 @@
                             const hint = document.createElement('div');
                             hint.className = 'move-hint';
                             
-                            // Determine hint type based on move properties
                             if (move.isCapture) {
-                                // Check if capture gives check
                                 if (this.moveGivesCheck(this.selectedPiece.row, this.selectedPiece.col, move.row, move.col)) {
                                     hint.classList.add('hint-check');
                                     hint.title = 'Check!';
@@ -870,10 +912,7 @@
                     });
                 }
                 
-                // Show danger hints for threatened pieces
                 this.showThreatenedPieces();
-                
-                // Update status display
                 this.updateStatusDisplay();
             }
             
@@ -881,7 +920,6 @@
                 const currentPlayer = this.currentPlayer;
                 const opponentColor = currentPlayer === 'white' ? 'black' : 'white';
                 
-                // Check each piece of current player
                 for (let row = 0; row < 8; row++) {
                     for (let col = 0; col < 8; col++) {
                         const piece = this.board[row][col];
@@ -889,7 +927,6 @@
                             ((currentPlayer === 'white' && piece === piece.toUpperCase()) ||
                              (currentPlayer === 'black' && piece === piece.toLowerCase()))) {
                             
-                            // Check if piece is under attack
                             if (this.isSquareAttacked(row, col, opponentColor)) {
                                 const square = document.querySelector(
                                     `.square[data-row="${row}"][data-col="${col}"]`
@@ -900,7 +937,6 @@
                                     dangerHint.className = 'danger-hint';
                                     square.appendChild(dangerHint);
                                     
-                                    // Add piece name to title
                                     const pieceName = this.getPieceName(piece);
                                     dangerHint.title = `${pieceName} is under attack!`;
                                 }
@@ -911,13 +947,11 @@
             }
             
             moveGivesCheck(fromRow, fromCol, toRow, toCol) {
-                // Temporarily make the move
                 const tempBoard = JSON.parse(JSON.stringify(this.board));
                 const piece = tempBoard[fromRow][fromCol];
                 tempBoard[toRow][toCol] = piece;
                 tempBoard[fromRow][fromCol] = '';
                 
-                // Find opponent's king
                 const opponentColor = this.currentPlayer === 'white' ? 'black' : 'white';
                 const kingSymbol = opponentColor === 'white' ? 'K' : 'k';
                 let kingRow = -1, kingCol = -1;
@@ -933,7 +967,6 @@
                     if (kingRow !== -1) break;
                 }
                 
-                // Check if any piece attacks the king
                 for (let r = 0; r < 8; r++) {
                     for (let c = 0; c < 8; c++) {
                         const piece = tempBoard[r][c];
@@ -956,7 +989,6 @@
                 const isWhite = piece === piece.toUpperCase();
                 const pieceType = piece.toLowerCase();
                 
-                // Check pawn attacks
                 if (pieceType === 'p') {
                     const direction = isWhite ? -1 : 1;
                     const attackOffsets = [[direction, -1], [direction, 1]];
@@ -969,7 +1001,6 @@
                     return false;
                 }
                 
-                // Check knight attacks
                 if (pieceType === 'n') {
                     const knightMoves = [
                         [-2, -1], [-2, 1], [-1, -2], [-1, 2],
@@ -984,7 +1015,6 @@
                     return false;
                 }
                 
-                // Check bishop/queen diagonal attacks
                 if (pieceType === 'b' || pieceType === 'q') {
                     const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
                     
@@ -994,14 +1024,13 @@
                         
                         while (this.isValidSquare(r, c)) {
                             if (r === toRow && c === toCol) return true;
-                            if (board[r][c] !== '') break; // Piece in the way
+                            if (board[r][c] !== '') break;
                             r += dr;
                             c += dc;
                         }
                     }
                 }
                 
-                // Check rook/queen straight attacks
                 if (pieceType === 'r' || pieceType === 'q') {
                     const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
                     
@@ -1011,14 +1040,13 @@
                         
                         while (this.isValidSquare(r, c)) {
                             if (r === toRow && c === toCol) return true;
-                            if (board[r][c] !== '') break; // Piece in the way
+                            if (board[r][c] !== '') break;
                             r += dr;
                             c += dc;
                         }
                     }
                 }
                 
-                // Check king attacks
                 if (pieceType === 'k') {
                     const kingMoves = [
                         [-1, -1], [-1, 0], [-1, 1],
@@ -1057,7 +1085,6 @@
                     statusDisplay.className = 'status-indicator status-safe';
                     statusDisplay.textContent = status;
                 } else {
-                    // Count threatened pieces
                     const threatenedPieces = this.countThreatenedPieces();
                     if (threatenedPieces > 0) {
                         statusDisplay.className = 'status-indicator status-safe';
@@ -1099,7 +1126,6 @@
                 return names[piece] || 'Piece';
             }
             
-            // Chess game logic (same as before)
             calculateLegalMoves(row, col) {
                 const piece = this.board[row][col];
                 if (!piece) return [];
@@ -1499,7 +1525,6 @@
             isSquareAttacked(row, col, attackerColor, customBoard = null) {
                 const board = customBoard || this.board;
                 
-                // Check pawn attacks
                 const pawnDirection = attackerColor === 'white' ? -1 : 1;
                 const pawnAttacks = [[pawnDirection, -1], [pawnDirection, 1]];
                 
@@ -1517,7 +1542,6 @@
                     }
                 }
                 
-                // Check knight attacks
                 const knightMoves = [
                     [-2, -1], [-2, 1], [-1, -2], [-1, 2],
                     [1, -2], [1, 2], [2, -1], [2, 1]
@@ -1537,7 +1561,6 @@
                     }
                 }
                 
-                // Check sliding pieces
                 const directions = [
                     [-1, 0], [1, 0], [0, -1], [0, 1],
                     [-1, -1], [-1, 1], [1, -1], [1, 1]
@@ -1698,6 +1721,7 @@
                 });
             }
             
+            // FIXED: Reset game function
             resetGame() {
                 this.createInitialBoard();
                 this.currentPlayer = 'white';
@@ -1725,6 +1749,7 @@
                 this.updateDisplay();
             }
             
+            // FIXED: Undo move function
             undoMove() {
                 if (this.moveHistory.length === 0 || this.promotionPending) return;
                 
@@ -1780,43 +1805,10 @@
             }
         }
         
-        // Game Initialization
-        function startGame() {
-            const whitePlayerName = document.getElementById('whitePlayerName').value.trim() || "Player 1";
-            const blackPlayerName = document.getElementById('blackPlayerName').value.trim() || "Player 2";
-            
-            document.getElementById('whitePlayerDisplay').textContent = whitePlayerName;
-            document.getElementById('blackPlayerDisplay').textContent = blackPlayerName;
-            
-            document.getElementById('setupScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'block';
-            
-            chessGame = new ChessGame(whitePlayerName, blackPlayerName);
-        }
-        
-        function choosePromotion(pieceType) {
-            if (chessGame) {
-                chessGame.choosePromotion(pieceType);
-            }
-        }
-        
-        function resetToSetup() {
-            document.getElementById('gameOverModal').style.display = 'none';
-            document.getElementById('setupScreen').style.display = 'block';
-            document.getElementById('gameScreen').style.display = 'none';
-        }
-        
         // Enter key to start game
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && document.getElementById('setupScreen').style.display !== 'none') {
                 startGame();
-            }
-        });
-        
-        // Enter key in password input
-        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                checkPassword();
             }
         });
     </script>
