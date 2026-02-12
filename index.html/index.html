@@ -1,2008 +1,1207 @@
 <!DOCTYPE html>
-<html>
+<html lang="bn">
 <head>
-    <title>Chess Game - Auto Save</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>নির্বাচন ফলাফল ২০২৬ | লাইভ আপডেট</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
         }
         
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 1100px;
-        }
-        
-        /* Setup Screen */
-        .setup-screen {
-            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
         }
         
-        .setup-screen h1 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.8rem;
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
         }
         
-        .player-inputs {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .player-input {
-            width: 100%;
-        }
-        
-        .player-input h3 {
-            background: #333;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        
-        .white-player h3 {
-            background: #f0d9b5;
-            color: #333;
-        }
-        
-        .black-player h3 {
-            background: #333;
-            color: white;
-        }
-        
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            font-size: 14px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        .start-btn {
-            background: #28a745;
-            color: white;
-            padding: 10px 30px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-        
-        /* Game Screen */
-        .game-screen {
-            display: none;
-        }
-        
-        .game-header {
+        /* Header */
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 5px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eef2f7;
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .live-badge {
+            background: #e74c3c;
             color: white;
-        }
-        
-        .player-info {
-            font-size: 14px;
-            font-weight: bold;
-        }
-        
-        .current-player {
-            background: #ffd700;
-            color: #333;
             padding: 5px 15px;
-            border-radius: 15px;
-            font-weight: bold;
+            border-radius: 50px;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            animation: pulse 1.5s infinite;
         }
         
-        .in-check {
-            background: #ff4444 !important;
-            color: white;
-            animation: pulse-red 1.5s infinite;
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s infinite;
         }
         
-        @keyframes pulse-red {
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
         
-        /* Game Layout */
-        .game-layout {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        @media (min-width: 769px) {
-            .game-layout {
-                flex-direction: row;
-            }
-            
-            .board-section {
-                flex: 3;
-            }
-            
-            .side-section {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
-        
-        /* Chess Board */
-        .chessboard {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-            border: 2px solid #333;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        
-        .square {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s;
-        }
-        
-        @media (max-width: 768px) {
-            .chessboard {
-                max-width: 350px;
-            }
-            .square {
-                font-size: 22px;
-            }
-        }
-        
-        .light {
-            background-color: #f0d9b5;
-        }
-        
-        .dark {
-            background-color: #b58863;
-        }
-        
-        .selected {
-            background-color: #ffd700 !important;
-            box-shadow: inset 0 0 0 3px #ff6b6b;
-        }
-        
-        /* Visual Move Hints */
-        .move-hint {
-            position: absolute;
-            width: 70%;
-            height: 70%;
-            border-radius: 50%;
-            z-index: 1;
-            pointer-events: none;
-        }
-        
-        .hint-safe {
-            background: rgba(33, 150, 243, 0.7); /* Blue for safe moves */
-            box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
-        }
-        
-        .hint-capture {
-            background: rgba(244, 67, 54, 0.7); /* Red for captures */
-            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
-            border: 2px solid rgba(244, 67, 54, 0.9);
-        }
-        
-        .hint-check {
-            background: rgba(255, 193, 7, 0.7); /* Yellow for check moves */
-            box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
-            border: 2px solid rgba(255, 193, 7, 0.9);
-        }
-        
-        .hint-promotion {
-            background: rgba(156, 39, 176, 0.7); /* Purple for promotion */
-            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
-            border: 2px solid rgba(156, 39, 176, 0.9);
-        }
-        
-        .hint-castle {
-            background: rgba(76, 175, 80, 0.7); /* Green for castling */
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-            border: 2px solid rgba(76, 175, 80, 0.9);
-        }
-        
-        /* Danger Hints for Threatened Pieces */
-        .danger-hint {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 3px solid rgba(244, 67, 54, 0.7);
-            border-radius: 2px;
-            animation: pulse-danger 1s infinite;
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        @keyframes pulse-danger {
-            0% { border-color: rgba(244, 67, 54, 0.3); }
-            50% { border-color: rgba(244, 67, 54, 0.7); }
-            100% { border-color: rgba(244, 67, 54, 0.3); }
-        }
-        
-        .king-in-check {
-            background-color: #ff4444 !important;
-            animation: pulse-check 1s infinite;
-        }
-        
-        @keyframes pulse-check {
-            0% { box-shadow: inset 0 0 0 3px rgba(255, 0, 0, 0.3); }
-            50% { box-shadow: inset 0 0 0 3px rgba(255, 0, 0, 0.7); }
-            100% { box-shadow: inset 0 0 0 3px rgba(255, 0, 0, 0.3); }
-        }
-        
-        .white-piece {
+        .election-year {
+            background: #e74c3c;
             color: white;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 18px;
         }
         
-        .black-piece {
-            color: black;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
-        }
-        
-        /* Legend */
-        .hint-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-        }
-        
-        .legend-color {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-        }
-        
-        .legend-danger {
-            width: 15px;
-            height: 15px;
-            border: 2px solid #f44336;
-            border-radius: 2px;
-            animation: pulse-danger 1s infinite;
-        }
-        
-        /* Kills Section */
-        .kills-section {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            border: 2px solid #ddd;
-        }
-        
-        .kills-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .player-name {
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        .kills-count {
-            background: #dc3545;
+        /* Login Section */
+        .login-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
             color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .kills-pieces {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            min-height: 40px;
-        }
-        
-        .killed-piece {
-            font-size: 20px;
-        }
-        
-        .white-kills .kills-header {
-            background: #f0d9b5;
-            margin: -15px -15px 8px -15px;
-            padding: 10px 15px;
-        }
-        
-        .black-kills .kills-header {
-            background: #333;
-            color: white;
-            margin: -15px -15px 8px -15px;
-            padding: 10px 15px;
-        }
-        
-        /* Controls */
-        .game-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .control-btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 3px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        
-        .undo-btn {
-            background: #ffc107;
-            color: #333;
-        }
-        
-        .reset-btn {
-            background: #dc3545;
-            color: white;
-        }
-        
-        /* Status Indicators */
-        .status-indicator {
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 10px;
             text-align: center;
         }
         
-        .status-safe {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .login-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
         }
         
-        .status-check {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            animation: pulse 1s infinite;
+        .password-input {
+            padding: 15px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 50px;
+            width: 300px;
+            margin-right: 10px;
+            border: 3px solid transparent;
         }
         
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.8; }
-            100% { opacity: 1; }
+        .password-input:focus {
+            outline: none;
+            border: 3px solid #f39c12;
         }
         
-        /* Modal */
-        .modal {
+        .login-btn {
+            padding: 15px 35px;
+            font-size: 18px;
+            background: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: #e67e22;
+            transform: scale(1.05);
+        }
+        
+        .error-message {
+            color: #ffcccc;
+            margin-top: 15px;
+            font-size: 16px;
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
         }
         
-        .modal-content {
+        /* Admin Panel */
+        .admin-panel {
+            background: linear-gradient(135deg, #f8faff, #f0f4fa);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: none;
+            border: 3px solid #27ae60;
+            animation: slideIn 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .admin-panel::before {
+            content: '🔴 লাইভ এডমিন';
+            position: absolute;
+            top: 10px;
+            right: -30px;
+            background: #e74c3c;
+            color: white;
+            padding: 5px 40px;
+            transform: rotate(45deg);
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .admin-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Party Input System */
+        .party-input-system {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #e0e7ed;
+        }
+        
+        .party-input-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #f39c12;
+            padding-bottom: 10px;
+        }
+        
+        .party-input-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .party-input-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 6px solid;
+            transition: all 0.3s;
+        }
+        
+        .party-input-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .party-input-card .party-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .party-input-field {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .party-number-input {
+            flex: 1;
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid #e0e7ed;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .party-number-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .party-update-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .party-update-btn:hover {
+            background: #2980b9;
+            transform: scale(0.98);
+        }
+        
+        .current-value {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #7f8c8d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px dashed #e0e7ed;
+        }
+        
+        .current-seat {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+        
+        /* Last Update */
+        .last-update {
+            background: #f8fafc;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #3498db;
+        }
+        
+        .update-time {
+            color: #7f8c8d;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .update-badge {
+            background: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* Main Stats Grid */
+        .main-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .other-card {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .other-card::after {
+            content: '📊';
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            font-size: 60px;
+            opacity: 0.2;
+        }
+        
+        .other-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .other-number {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .seat-numbers {
+            display: flex;
+            justify-content: space-between;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .seat-numbers::after {
+            content: '🏛️';
+            position: absolute;
+            right: 20px;
+            bottom: 10px;
+            font-size: 40px;
+            opacity: 0.1;
+        }
+        
+        .seat-zero {
+            font-size: 42px;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1;
+        }
+        
+        .seat-zero-label {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .seat-total {
+            font-size: 42px;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1;
+        }
+        
+        /* Party Stats Display */
+        .party-stats {
+            background: linear-gradient(135deg, #f8faff, #f0f4fa);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .majority-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .party-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .party-item {
             background: white;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
-            width: 90%;
-            max-width: 300px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            border-left: 6px solid;
+            transition: all 0.3s;
         }
         
-        .modal h2 {
-            font-size: 18px;
+        .party-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .party-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
             margin-bottom: 10px;
         }
         
-        .modal input {
-            width: 100%;
-            padding: 8px;
-            margin: 10px 0;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            text-align: center;
+        .party-seat {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1;
+            margin-bottom: 5px;
         }
         
-        .modal-buttons {
+        .remaining-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-top: 4px solid #e74c3c;
+        }
+        
+        .remaining-box div {
             display: flex;
-            gap: 10px;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .modal-btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        .remaining-label {
+            color: #7f8c8d;
+            font-size: 16px;
+            font-weight: 600;
         }
         
-        .submit-btn {
-            background: #28a745;
-            color: white;
+        .remaining-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
         }
         
-        .cancel-btn {
-            background: #6c757d;
-            color: white;
+        /* Seat Matrix */
+        .seat-section {
+            background: white;
+            border: 1px solid #eef2f7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
         }
         
-        .promotion-options {
+        .seat-header {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .seat-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
             gap: 10px;
-            margin: 15px 0;
         }
         
-        .promotion-piece {
-            font-size: 30px;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
+        .seat-grid {
+            display: grid;
+            grid-template-columns: repeat(30, 1fr);
+            gap: 3px;
+            margin-bottom: 15px;
         }
         
-        .promotion-piece:hover {
-            background: #f8f9fa;
+        .seat {
+            aspect-ratio: 1;
+            background: #ecf0f1;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        
+        .seat:hover {
             transform: scale(1.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        /* Confirmation Modal */
-        .confirmation-modal .modal-buttons {
-            margin-top: 15px;
+        /* Voter Stats */
+        .voter-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
         }
         
-        .yes-btn {
-            background: #dc3545;
-            color: white;
+        .voter-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border-bottom: 3px solid #3498db;
         }
         
-        .no-btn {
-            background: #6c757d;
-            color: white;
+        .voter-icon {
+            font-size: 32px;
         }
         
-        /* Save Status */
-        .save-status {
+        .voter-info h4 {
+            color: #7f8c8d;
+            font-size: 14px;
+            font-weight: normal;
+            margin-bottom: 5px;
+        }
+        
+        .voter-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .voter-percent {
+            color: #95a5a6;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+        
+        /* Disclaimer */
+        .disclaimer {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            color: #e67e22;
             text-align: center;
-            font-size: 12px;
-            color: #28a745;
-            margin-top: 10px;
-            font-weight: bold;
+            font-size: 14px;
+            border-left: 4px solid #e67e22;
+            margin-top: 20px;
+        }
+        
+        /* Active Users */
+        .active-users {
+            background: #f8fafc;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        
+        .user-count {
+            background: #3498db;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 1200px) {
+            .party-grid, .party-input-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .party-grid, .party-input-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .voter-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .seat-grid {
+                grid-template-columns: repeat(15, 1fr);
+            }
+            
+            .password-input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .party-input-field {
+                flex-direction: column;
+            }
+            
+            .party-update-btn {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Setup Screen -->
-        <div class="setup-screen" id="setupScreen">
-            <h1>Chess Game - Auto Save</h1>
-            <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Game automatically saves after each move</p>
+        <!-- Header with Live Status -->
+        <header>
+            <h1>
+                🗳️ নির্বাচনের দিন ফলাফল
+                <span class="live-badge">
+                    <span class="live-dot"></span>
+                    লাইভ
+                </span>
+            </h1>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="active-users" id="activeUsers">
+                    👥 সক্রিয় দর্শক: <span class="user-count" id="userCount">১</span>
+                </div>
+                <span class="election-year">২০২৬</span>
+            </div>
+        </header>
+
+        <!-- Last Update Info -->
+        <div class="last-update" id="lastUpdate">
+            <div class="update-time">
+                ⏰ সর্বশেষ আপডেট: <span id="updateTimeText">এখনই</span>
+            </div>
+            <div class="update-badge" id="updateBadge" style="display: none;">
+                নতুন আপডেট!
+            </div>
+        </div>
+
+        <!-- Login Section -->
+        <div class="login-section" id="loginSection">
+            <div class="login-title">🔐 এডমিন লগইন</div>
+            <input type="password" id="passwordInput" class="password-input" placeholder="পাসওয়ার্ড দিন">
+            <button onclick="checkPassword()" class="login-btn">লগইন</button>
+            <div id="errorMessage" class="error-message">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</div>
+        </div>
+
+        <!-- Admin Panel - Party Input System -->
+        <div class="admin-panel" id="adminPanel">
+            <div class="admin-title">
+                <span>⚡ এডমিন প্যানেল - লাইভ আপডেট সিস্টেম</span>
+            </div>
             
-            <div class="player-inputs">
-                <div class="player-input white-player">
-                    <h3>White Player</h3>
-                    <input type="text" id="whitePlayerName" placeholder="Player 1" value="Player 1">
+            <div class="party-input-system">
+                <div class="party-input-title">
+                    <span>🗳️ দলীয় আসন সংখ্যা ইনপুট করুন (সব ইউজার লাইভ দেখতে পাবে)</span>
                 </div>
                 
-                <div class="player-input black-player">
-                    <h3>Black Player</h3>
-                    <input type="text" id="blackPlayerName" placeholder="Player 2" value="Player 2">
+                <div class="party-input-grid">
+                    <!-- বিএনপি -->
+                    <div class="party-input-card" style="border-left-color: #f39c12;">
+                        <div class="party-name">
+                            <span style="color: #f39c12;">🦁</span> বিএনপি
+                        </div>
+                        <div class="party-input-field">
+                            <input type="number" id="bnpInput" class="party-number-input" value="0" min="0" max="300" placeholder="আসন সংখ্যা">
+                            <button onclick="updateBNP()" class="party-update-btn" style="background: #f39c12;">লাইভ আপডেট</button>
+                        </div>
+                        <div class="current-value">
+                            <span>বর্তমান আসন:</span>
+                            <span class="current-seat" id="bnpCurrent">০</span>
+                        </div>
+                    </div>
+                    
+                    <!-- জামায়াতে ইসলামী -->
+                    <div class="party-input-card" style="border-left-color: #2ecc71;">
+                        <div class="party-name">
+                            <span style="color: #2ecc71;">🌙</span> বাংলাদেশ জামায়াতে ইসলামী
+                        </div>
+                        <div class="party-input-field">
+                            <input type="number" id="jamaatInput" class="party-number-input" value="0" min="0" max="300" placeholder="আসন সংখ্যা">
+                            <button onclick="updateJamaat()" class="party-update-btn" style="background: #2ecc71;">লাইভ আপডেট</button>
+                        </div>
+                        <div class="current-value">
+                            <span>বর্তমান আসন:</span>
+                            <span class="current-seat" id="jamaatCurrent">০</span>
+                        </div>
+                    </div>
+                    
+                    <!-- জাপা -->
+                    <div class="party-input-card" style="border-left-color: #e74c3c;">
+                        <div class="party-name">
+                            <span style="color: #e74c3c;">⚙️</span> জাপা
+                        </div>
+                        <div class="party-input-field">
+                            <input type="number" id="japaInput" class="party-number-input" value="0" min="0" max="300" placeholder="আসন সংখ্যা">
+                            <button onclick="updateJapa()" class="party-update-btn" style="background: #e74c3c;">লাইভ আপডেট</button>
+                        </div>
+                        <div class="current-value">
+                            <span>বর্তমান আসন:</span>
+                            <span class="current-seat" id="japaCurrent">০</span>
+                        </div>
+                    </div>
+                    
+                    <!-- এনসিপি -->
+                    <div class="party-input-card" style="border-left-color: #9b59b6;">
+                        <div class="party-name">
+                            <span style="color: #9b59b6;">🆕</span> এনসিপি
+                        </div>
+                        <div class="party-input-field">
+                            <input type="number" id="ncpInput" class="party-number-input" value="0" min="0" max="300" placeholder="আসন সংখ্যা">
+                            <button onclick="updateNCP()" class="party-update-btn" style="background: #9b59b6;">লাইভ আপডেট</button>
+                        </div>
+                        <div class="current-value">
+                            <span>বর্তমান আসন:</span>
+                            <span class="current-seat" id="ncpCurrent">০</span>
+                        </div>
+                    </div>
+                    
+                    <!-- অন্যান্য -->
+                    <div class="party-input-card" style="border-left-color: #95a5a6;">
+                        <div class="party-name">
+                            <span style="color: #95a5a6;">📊</span> অন্যান্য
+                        </div>
+                        <div class="party-input-field">
+                            <input type="number" id="otherPartyInput" class="party-number-input" value="0" min="0" max="300" placeholder="আসন সংখ্যা">
+                            <button onclick="updateOtherParty()" class="party-update-btn" style="background: #95a5a6;">লাইভ আপডেট</button>
+                        </div>
+                        <div class="current-value">
+                            <span>বর্তমান আসন:</span>
+                            <span class="current-seat" id="otherPartyCurrent">০</span>
+                        </div>
+                    </div>
+                    
+                    <!-- অন্যান্য (উপরের কার্ড) -->
+                    <div class="party-input-card" style="border-left-color: #3498db;">
+                        <div class="party-name">
+                            <span style="color: #3498db;">🏛️</span> অন্যান্য (উপরের)
+                        </div>
+                        <div class="party-input-field">
+                            <input type="number" id="otherInput" class="party-number-input" value="0" min="0" max="300" placeholder="আসন সংখ্যা">
+                            <button onclick="updateOther()" class="party-update-btn" style="background: #3498db;">লাইভ আপডেট</button>
+                        </div>
+                        <div class="current-value">
+                            <span>বর্তমান আসন:</span>
+                            <span class="current-seat" id="otherCurrent">০</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <button class="start-btn" onclick="startGame()">
-                Start New Game
-            </button>
-            <button class="start-btn" onclick="continueGame()" style="background: #007bff; margin-top: 10px;">
-                Continue Saved Game
-            </button>
+            <button onclick="logout()" class="logout-btn">🔒 লগআউট</button>
         </div>
-        
-        <!-- Game Screen -->
-        <div class="game-screen" id="gameScreen">
-            <div class="game-header">
-                <div class="player-info" id="whitePlayerDisplay">
-                    Player 1
+
+        <!-- Main Stats -->
+        <div class="main-stats">
+            <div class="other-card">
+                <div class="other-title">অন্যান্য</div>
+                <div class="other-number" id="otherDisplay">০</div>
+            </div>
+            
+            <div class="seat-numbers">
+                <div style="text-align: center;">
+                    <div class="seat-zero" id="zeroLeft">০</div>
+                    <div class="seat-zero-label">মোট প্রাপ্ত</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="seat-total">৩০০</div>
+                    <div class="seat-zero-label">মোট আসন</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Party Stats Display -->
+        <div class="party-stats">
+            <div class="majority-text">
+                <span>🏆 সংখ্যাগরিষ্ঠতা ১৫১</span>
+            </div>
+            
+            <div class="party-grid">
+                <div class="party-item" style="border-left-color: #f39c12;">
+                    <div class="party-name">বিএনপি</div>
+                    <div class="party-seat" id="bnpDisplay">০</div>
                 </div>
                 
-                <div class="current-player" id="currentPlayerDisplay">
-                    White's Turn
+                <div class="party-item" style="border-left-color: #2ecc71;">
+                    <div class="party-name">বাংলাদেশ জামায়াতে ইসলামী</div>
+                    <div class="party-seat" id="jamaatDisplay">০</div>
                 </div>
                 
-                <div class="player-info" id="blackPlayerDisplay">
-                    Player 2
+                <div class="party-item" style="border-left-color: #e74c3c;">
+                    <div class="party-name">জাপা</div>
+                    <div class="party-seat" id="japaDisplay">০</div>
+                </div>
+                
+                <div class="party-item" style="border-left-color: #9b59b6;">
+                    <div class="party-name">এনসিপি</div>
+                    <div class="party-seat" id="ncpDisplay">০</div>
+                </div>
+                
+                <div class="party-item" style="border-left-color: #95a5a6;">
+                    <div class="party-name">অন্যান্য</div>
+                    <div class="party-seat" id="otherPartyDisplay">০</div>
                 </div>
             </div>
             
-            <div class="game-layout">
-                <div class="board-section">
-                    <div class="chessboard" id="chessboard">
-                        <!-- Board will be generated -->
-                    </div>
-                    
-                    <div id="statusDisplay" class="status-indicator status-safe">
-                        Click a piece to see visual move hints
-                    </div>
-                    
-                    <!-- Visual Hint Legend -->
-                    <div class="hint-legend">
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(33, 150, 243, 0.7);"></div>
-                            <span>Safe Move</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(244, 67, 54, 0.7);"></div>
-                            <span>Capture</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(255, 193, 7, 0.7);"></div>
-                            <span>Check</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(156, 39, 176, 0.7);"></div>
-                            <span>Promotion</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(76, 175, 80, 0.7);"></div>
-                            <span>Castling</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-danger"></div>
-                            <span>Under Attack</span>
-                        </div>
-                    </div>
-                    
-                    <div class="save-status" id="saveStatus">
-                        Game saved automatically
-                    </div>
-                    
-                    <div class="game-controls">
-                        <button class="control-btn undo-btn" onclick="undoMove()">Undo</button>
-                        <button class="control-btn reset-btn" onclick="resetGame()">Reset</button>
+            <div class="remaining-box">
+                <div>
+                    <span class="remaining-label">বাকি আসন</span>
+                    <span class="remaining-number" id="remainingDisplay">৩০০</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seat Matrix -->
+        <div class="seat-section">
+            <div class="seat-header">
+                <div class="seat-title">
+                    <span>🏛️ ৩০০ আসনের ফলাফল</span>
+                </div>
+                <div style="display: flex; gap: 20px;">
+                    <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: #2c3e50; display: inline-block; border-radius: 2px;"></span> জিতেছে</span>
+                    <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: repeating-linear-gradient(45deg, #2c3e50, #2c3e50 4px, #95a5a6 4px, #95a5a6 8px); display: inline-block; border-radius: 2px;"></span> এগিয়ে</span>
+                </div>
+            </div>
+            <div class="seat-grid" id="seatGrid"></div>
+        </div>
+
+        <!-- Voter Stats -->
+        <div class="voter-stats">
+            <div class="voter-card">
+                <span class="voter-icon">👥</span>
+                <div class="voter-info">
+                    <h4>মোট ভোটার</h4>
+                    <div>
+                        <span class="voter-number" id="totalVoters">১২.৬৬ কোটি</span>
                     </div>
                 </div>
-                
-                <div class="side-section">
-                    <!-- Player 1 Kills -->
-                    <div class="kills-section white-kills">
-                        <div class="kills-header">
-                            <div class="player-name" id="whiteKillsTitle">Player 1 Kills</div>
-                            <div class="kills-count" id="whiteKillCount">0</div>
-                        </div>
-                        <div class="kills-pieces" id="whiteKilledPieces">
-                            <!-- Black pieces killed by White -->
-                        </div>
+            </div>
+            
+            <div class="voter-card">
+                <span class="voter-icon">🗳️</span>
+                <div class="voter-info">
+                    <h4>ভোট পড়েছে</h4>
+                    <div>
+                        <span class="voter-number" id="votesCast">০</span>
+                        <span class="voter-percent" id="votesCastPercent">০.০%</span>
                     </div>
-                    
-                    <!-- Player 2 Kills -->
-                    <div class="kills-section black-kills">
-                        <div class="kills-header">
-                            <div class="player-name" id="blackKillsTitle">Player 2 Kills</div>
-                            <div class="kills-count" id="blackKillCount">0</div>
-                        </div>
-                        <div class="kills-pieces" id="blackKilledPieces">
-                            <!-- White pieces killed by Black -->
-                        </div>
+                </div>
+            </div>
+            
+            <div class="voter-card">
+                <span class="voter-icon">📊</span>
+                <div class="voter-info">
+                    <h4>ভোট গণনা হয়েছে</h4>
+                    <div>
+                        <span class="voter-number" id="votesCounted">০</span>
+                        <span class="voter-percent" id="votesCountedPercent">০%</span>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Promotion Modal -->
-    <div class="modal" id="promotionModal">
-        <div class="modal-content">
-            <h2>Promote Pawn</h2>
-            <div class="promotion-options">
-                <div class="promotion-piece" onclick="choosePromotion('queen')">♕</div>
-                <div class="promotion-piece" onclick="choosePromotion('rook')">♖</div>
-                <div class="promotion-piece" onclick="choosePromotion('bishop')">♗</div>
-                <div class="promotion-piece" onclick="choosePromotion('knight')">♘</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Game Over Modal -->
-    <div class="modal" id="gameOverModal">
-        <div class="modal-content">
-            <h2 id="gameOverTitle">Game Over</h2>
-            <p id="gameOverMessage"></p>
-            <button class="modal-btn submit-btn" onclick="resetToSetup()">New Game</button>
-        </div>
-    </div>
-    
-    <!-- Confirmation Modal -->
-    <div class="modal confirmation-modal" id="confirmationModal">
-        <div class="modal-content">
-            <h2 id="confirmationTitle">Confirm Action</h2>
-            <p id="confirmationMessage"></p>
-            <div class="modal-buttons">
-                <button class="modal-btn yes-btn" onclick="confirmAction(true)">Yes</button>
-                <button class="modal-btn no-btn" onclick="confirmAction(false)">No</button>
-            </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+            * এই তথ্য কাল্পনিক এবং শুধুমাত্র প্রদর্শনের উদ্দেশ্যে। প্রকৃত নির্বাচন ফলাফল নয়।
         </div>
     </div>
 
     <script>
-        // LocalStorage keys
-        const CHESS_SAVE_KEY = 'chess_game_save';
-        const CHESS_PLAYERS_KEY = 'chess_players_save';
+        // ==================== লাইভ আপডেট সিস্টেম ====================
+        // এই ওয়েবসাইটটি লাইভ হলে, এডমিন যেকোনো ইনপুট দিলেই সব ইউজার তা সাথে সাথে দেখতে পাবে
         
-        let chessGame = null;
-        let pendingAction = null;
+        // গ্লোবাল স্টেট - সব ডাটা এখানে সংরক্ষিত থাকবে
+        window.electionState = {
+            bnp: 0,
+            jamaat: 0,
+            japa: 0,
+            ncp: 0,
+            otherParty: 0,
+            other: 0,
+            totalVoters: '১২.৬৬',
+            votesCast: 0,
+            votesCounted: 0,
+            lastUpdate: new Date().toLocaleTimeString('bn-BD'),
+            updateCount: 0
+        };
+
+        // ইউজার আইডি জেনারেট করুন
+        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        let isAdmin = false;
+
+        // ==================== ওয়েবসকেট সিমুলেশন ====================
+        // লাইভ আপডেটের জন্য এটি লোকাল স্টোরেজ ইভেন্ট ব্যবহার করে
+        // যখন এডমিন আপডেট দেয়, সব ইউজার তা সাথে সাথে দেখতে পায়
         
-        // Check for saved game on page load
-        window.addEventListener('load', function() {
-            const savedGame = getSavedGame();
-            if (savedGame) {
-                console.log("Saved game found, ready to continue");
+        // লোকাল স্টোরেজ চ্যানেল - সব ট্যাব/ইউজার একে অপরের সাথে কথা বলতে পারে
+        function broadcastUpdate(type, party, value) {
+            const updateEvent = {
+                type: 'ELECTION_UPDATE',
+                party: party,
+                value: value,
+                timestamp: new Date().getTime(),
+                userId: userId,
+                isAdmin: isAdmin
+            };
+            
+            // লোকাল স্টোরেজে সেভ করুন - এটি সব উইন্ডোতে ইভেন্ট ট্রিগার করবে
+            localStorage.setItem('election_update', JSON.stringify(updateEvent));
+            
+            // নিজের আপডেট নিজে প্রসেস করুন
+            processUpdate(updateEvent);
+            
+            // আপডেট টাইম সেট করুন
+            updateLastUpdateTime();
+            
+            // নোটিফিকেশন দেখান
+            showNotification();
+        }
+
+        // লোকাল স্টোরেজ চেঞ্জ লিসেনার - সব ইউজার এখানে আপডেট পায়
+        window.addEventListener('storage', function(event) {
+            if (event.key === 'election_update') {
+                const updateData = JSON.parse(event.newValue);
+                // নিজের আপডেট ইগনোর করুন (এড়িয়ে যান)
+                if (updateData.userId !== userId) {
+                    processUpdate(updateData);
+                    showNotification();
+                }
             }
         });
-        
-        // Save game state to localStorage
-        function saveGameState(game) {
-            if (!game) return;
-            
-            const gameState = {
-                board: game.board,
-                currentPlayer: game.currentPlayer,
-                selectedPiece: game.selectedPiece,
-                legalMoves: game.legalMoves,
-                moveHistory: game.moveHistory,
-                capturedPieces: game.capturedPieces,
-                gameActive: game.gameActive,
-                promotionPending: game.promotionPending,
-                promotionMove: game.promotionMove,
-                enPassantTarget: game.enPassantTarget,
-                castlingRights: game.castlingRights,
-                halfMoveClock: game.halfMoveClock,
-                fullMoveNumber: game.fullMoveNumber,
-                isInCheck: game.isInCheck,
-                kingPosition: game.kingPosition,
-                saveTime: new Date().toISOString()
-            };
-            
-            localStorage.setItem(CHESS_SAVE_KEY, JSON.stringify(gameState));
-            
-            // Save player names
-            const players = {
-                whitePlayerName: game.whitePlayerName,
-                blackPlayerName: game.blackPlayerName
-            };
-            localStorage.setItem(CHESS_PLAYERS_KEY, JSON.stringify(players));
-            
-            // Show save confirmation
-            showSaveStatus("Game saved ✓");
-        }
-        
-        // Get saved game from localStorage
-        function getSavedGame() {
-            const saved = localStorage.getItem(CHESS_SAVE_KEY);
-            if (!saved) return null;
-            
-            try {
-                return JSON.parse(saved);
-            } catch (e) {
-                console.error("Error parsing saved game:", e);
-                return null;
+
+        // আপডেট প্রসেস করুন
+        function processUpdate(updateData) {
+            if (updateData.type === 'ELECTION_UPDATE') {
+                const party = updateData.party;
+                const value = updateData.value;
+                
+                // ডিসপ্লে আপডেট করুন
+                switch(party) {
+                    case 'bnp':
+                        document.getElementById('bnpDisplay').innerText = value;
+                        document.getElementById('bnpCurrent').innerText = value;
+                        window.electionState.bnp = parseInt(value) || 0;
+                        break;
+                    case 'jamaat':
+                        document.getElementById('jamaatDisplay').innerText = value;
+                        document.getElementById('jamaatCurrent').innerText = value;
+                        window.electionState.jamaat = parseInt(value) || 0;
+                        break;
+                    case 'japa':
+                        document.getElementById('japaDisplay').innerText = value;
+                        document.getElementById('japaCurrent').innerText = value;
+                        window.electionState.japa = parseInt(value) || 0;
+                        break;
+                    case 'ncp':
+                        document.getElementById('ncpDisplay').innerText = value;
+                        document.getElementById('ncpCurrent').innerText = value;
+                        window.electionState.ncp = parseInt(value) || 0;
+                        break;
+                    case 'otherParty':
+                        document.getElementById('otherPartyDisplay').innerText = value;
+                        document.getElementById('otherPartyCurrent').innerText = value;
+                        window.electionState.otherParty = parseInt(value) || 0;
+                        break;
+                    case 'other':
+                        document.getElementById('otherDisplay').innerText = value;
+                        document.getElementById('otherCurrent').innerText = value;
+                        window.electionState.other = parseInt(value) || 0;
+                        break;
+                }
+                
+                // রিমেইনিং আসন আপডেট করুন
+                updateRemaining();
+                
+                // আপডেট কাউন্ট বাড়ান
+                window.electionState.updateCount++;
             }
         }
-        
-        // Get saved players from localStorage
-        function getSavedPlayers() {
-            const saved = localStorage.getItem(CHESS_PLAYERS_KEY);
-            if (!saved) return null;
+
+        // নোটিফিকেশন দেখান
+        function showNotification() {
+            const badge = document.getElementById('updateBadge');
+            badge.style.display = 'inline-block';
             
-            try {
-                return JSON.parse(saved);
-            } catch (e) {
-                console.error("Error parsing saved players:", e);
-                return null;
-            }
-        }
-        
-        // Show save status
-        function showSaveStatus(message) {
-            const saveStatus = document.getElementById('saveStatus');
-            saveStatus.textContent = message;
-            saveStatus.style.color = '#28a745';
-            
-            // Reset after 2 seconds
+            // ৩ সেকেন্ড পর নোটিফিকেশন হাইড করুন
             setTimeout(() => {
-                saveStatus.textContent = "Game saved automatically";
-                saveStatus.style.color = '#28a745';
-            }, 2000);
+                badge.style.display = 'none';
+            }, 3000);
         }
-        
-        // Game Initialization
-        function startGame() {
-            const whitePlayerName = document.getElementById('whitePlayerName').value.trim() || "Player 1";
-            const blackPlayerName = document.getElementById('blackPlayerName').value.trim() || "Player 2";
-            
-            // Save player names
-            localStorage.setItem(CHESS_PLAYERS_KEY, JSON.stringify({
-                whitePlayerName: whitePlayerName,
-                blackPlayerName: blackPlayerName
-            }));
-            
-            document.getElementById('whitePlayerDisplay').textContent = whitePlayerName;
-            document.getElementById('blackPlayerDisplay').textContent = blackPlayerName;
-            
-            document.getElementById('setupScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'block';
-            
-            chessGame = new ChessGame(whitePlayerName, blackPlayerName);
-            
-            // Clear any previous saved game
-            localStorage.removeItem(CHESS_SAVE_KEY);
-            showSaveStatus("New game started ✓");
+
+        // লাস্ট আপডেট টাইম আপডেট করুন
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('bn-BD', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('updateTimeText').innerText = timeString;
+            window.electionState.lastUpdate = timeString;
         }
+
+        // ==================== এডমিন ফাংশন ====================
         
-        function continueGame() {
-            const savedGame = getSavedGame();
-            const savedPlayers = getSavedPlayers();
-            
-            if (!savedGame || !savedPlayers) {
-                alert("No saved game found! Starting a new game.");
-                startGame();
-                return;
-            }
-            
-            const whitePlayerName = savedPlayers.whitePlayerName || "Player 1";
-            const blackPlayerName = savedPlayers.blackPlayerName || "Player 2";
-            
-            document.getElementById('whitePlayerDisplay').textContent = whitePlayerName;
-            document.getElementById('blackPlayerDisplay').textContent = blackPlayerName;
-            
-            document.getElementById('setupScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'block';
-            
-            chessGame = new ChessGame(whitePlayerName, blackPlayerName);
-            
-            // Load the saved game state
-            chessGame.loadFromSave(savedGame);
-            
-            showSaveStatus("Game loaded ✓");
-        }
-        
-        function choosePromotion(pieceType) {
-            if (chessGame) {
-                chessGame.choosePromotion(pieceType);
+        // পাসওয়ার্ড চেক
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === 'akI-212$') {
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'none';
+                isAdmin = true;
+                
+                // এডমিন লগইন ব্রডকাস্ট
+                broadcastUpdate('ADMIN_LOGIN', 'none', 0);
+            } else {
+                document.getElementById('errorMessage').style.display = 'block';
             }
         }
-        
-        function resetToSetup() {
-            document.getElementById('gameOverModal').style.display = 'none';
-            document.getElementById('setupScreen').style.display = 'block';
-            document.getElementById('gameScreen').style.display = 'none';
-            chessGame = null;
+
+        // লগআউট
+        function logout() {
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('passwordInput').value = '';
+            isAdmin = false;
         }
-        
-        // Control Functions
-        function undoMove() {
-            if (!chessGame) return;
-            
-            if (chessGame.moveHistory.length === 0) {
-                alert("No moves to undo!");
-                return;
-            }
-            
-            showConfirmation("Undo Last Move", "Are you sure you want to undo the last move?", 'undo');
+
+        // ==================== আপডেট ফাংশন ====================
+        // এডমিন যখন ইনপুট দেয়, সব ইউজারের জন্য ব্রডকাস্ট হয়
+
+        function updateBNP() {
+            const value = document.getElementById('bnpInput').value;
+            broadcastUpdate('ELECTION_UPDATE', 'bnp', value);
         }
-        
-        function resetGame() {
-            if (!chessGame) return;
-            
-            if (chessGame.moveHistory.length === 0 && chessGame.capturedPieces.white.length === 0 && chessGame.capturedPieces.black.length === 0) {
-                chessGame.resetGame();
-                return;
-            }
-            
-            showConfirmation("Reset Game", "Are you sure you want to reset the game? All progress will be lost.", 'reset');
+
+        function updateJamaat() {
+            const value = document.getElementById('jamaatInput').value;
+            broadcastUpdate('ELECTION_UPDATE', 'jamaat', value);
         }
-        
-        function showConfirmation(title, message, action) {
-            pendingAction = action;
-            document.getElementById('confirmationTitle').textContent = title;
-            document.getElementById('confirmationMessage').textContent = message;
-            document.getElementById('confirmationModal').style.display = 'flex';
+
+        function updateJapa() {
+            const value = document.getElementById('japaInput').value;
+            broadcastUpdate('ELECTION_UPDATE', 'japa', value);
         }
-        
-        function confirmAction(confirmed) {
-            document.getElementById('confirmationModal').style.display = 'none';
-            
-            if (!confirmed || !chessGame) {
-                pendingAction = null;
-                return;
-            }
-            
-            if (pendingAction === 'undo') {
-                chessGame.undoMove();
-            } else if (pendingAction === 'reset') {
-                chessGame.resetGame();
-            }
-            
-            pendingAction = null;
+
+        function updateNCP() {
+            const value = document.getElementById('ncpInput').value;
+            broadcastUpdate('ELECTION_UPDATE', 'ncp', value);
         }
+
+        function updateOtherParty() {
+            const value = document.getElementById('otherPartyInput').value;
+            broadcastUpdate('ELECTION_UPDATE', 'otherParty', value);
+        }
+
+        function updateOther() {
+            const value = document.getElementById('otherInput').value;
+            broadcastUpdate('ELECTION_UPDATE', 'other', value);
+        }
+
+        // বাকি আসন ক্যালকুলেশন
+        function updateRemaining() {
+            const bnp = parseInt(document.getElementById('bnpDisplay').innerText) || 0;
+            const jamaat = parseInt(document.getElementById('jamaatDisplay').innerText) || 0;
+            const japa = parseInt(document.getElementById('japaDisplay').innerText) || 0;
+            const ncp = parseInt(document.getElementById('ncpDisplay').innerText) || 0;
+            const otherParty = parseInt(document.getElementById('otherPartyDisplay').innerText) || 0;
+            const other = parseInt(document.getElementById('otherDisplay').innerText) || 0;
+            
+            const total = bnp + jamaat + japa + ncp + otherParty + other;
+            const remaining = 300 - total;
+            
+            document.getElementById('remainingDisplay').innerText = remaining;
+            document.getElementById('zeroLeft').innerText = total;
+        }
+
+        // ==================== সিট গ্রিড ====================
         
-        // Chess Game Engine with Save/Load functionality
-        class ChessGame {
-            constructor(whitePlayerName, blackPlayerName) {
-                this.whitePlayerName = whitePlayerName;
-                this.blackPlayerName = blackPlayerName;
-                this.board = [];
-                this.currentPlayer = 'white';
-                this.selectedPiece = null;
-                this.legalMoves = [];
-                this.moveHistory = [];
-                this.capturedPieces = { white: [], black: [] };
-                this.gameActive = true;
-                this.promotionPending = false;
-                this.promotionMove = null;
-                this.enPassantTarget = null;
-                this.castlingRights = {
-                    white: { king: true, queenside: true, kingside: true },
-                    black: { king: true, queenside: true, kingside: true }
-                };
-                this.halfMoveClock = 0;
-                this.fullMoveNumber = 1;
-                this.isInCheck = false;
-                this.kingPosition = { white: { row: 7, col: 4 }, black: { row: 0, col: 4 } };
-                
-                this.pieceSymbols = {
-                    'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔',
-                    'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚'
-                };
-                
-                this.createInitialBoard();
-                this.renderBoard();
-                this.updateDisplay();
-                this.updateVisualHints();
-            }
+        function renderSeats() {
+            const seatGrid = document.getElementById('seatGrid');
+            seatGrid.innerHTML = '';
             
-            createInitialBoard() {
-                this.board = [
-                    ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
-                    ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
-                    ['', '', '', '', '', '', '', ''],
-                    ['', '', '', '', '', '', '', ''],
-                    ['', '', '', '', '', '', '', ''],
-                    ['', '', '', '', '', '', '', ''],
-                    ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
-                    ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
-                ];
-            }
-            
-            loadFromSave(gameData) {
-                this.board = gameData.board;
-                this.currentPlayer = gameData.currentPlayer;
-                this.selectedPiece = gameData.selectedPiece;
-                this.legalMoves = gameData.legalMoves || [];
-                this.moveHistory = gameData.moveHistory || [];
-                this.capturedPieces = gameData.capturedPieces || { white: [], black: [] };
-                this.gameActive = gameData.gameActive !== false;
-                this.promotionPending = gameData.promotionPending || false;
-                this.promotionMove = gameData.promotionMove;
-                this.enPassantTarget = gameData.enPassantTarget;
-                this.castlingRights = gameData.castlingRights || {
-                    white: { king: true, queenside: true, kingside: true },
-                    black: { king: true, queenside: true, kingside: true }
-                };
-                this.halfMoveClock = gameData.halfMoveClock || 0;
-                this.fullMoveNumber = gameData.fullMoveNumber || 1;
-                this.isInCheck = gameData.isInCheck || false;
-                this.kingPosition = gameData.kingPosition || { white: { row: 7, col: 4 }, black: { row: 0, col: 4 } };
+            for (let i = 0; i < 300; i++) {
+                const seat = document.createElement('div');
+                seat.className = 'seat';
                 
-                this.renderBoard();
-                this.updateDisplay();
-                this.updateVisualHints();
-            }
-            
-            autoSave() {
-                saveGameState(this);
-            }
-            
-            renderBoard() {
-                const boardElement = document.getElementById('chessboard');
-                boardElement.innerHTML = '';
-                
-                this.isInCheck = this.isKingInCheck(this.currentPlayer);
-                
-                for (let row = 0; row < 8; row++) {
-                    for (let col = 0; col < 8; col++) {
-                        const square = document.createElement('div');
-                        square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
-                        square.dataset.row = row;
-                        square.dataset.col = col;
-                        
-                        const piece = this.board[row][col];
-                        const isKing = piece && piece.toLowerCase() === 'k';
-                        const isCurrentPlayerKing = isKing && (
-                            (this.currentPlayer === 'white' && piece === 'K') ||
-                            (this.currentPlayer === 'black' && piece === 'k')
-                        );
-                        
-                        if (isCurrentPlayerKing && this.isInCheck) {
-                            square.classList.add('king-in-check');
-                        }
-                        
-                        if (piece) {
-                            square.textContent = this.pieceSymbols[piece];
-                            square.classList.add(piece === piece.toUpperCase() ? 'white-piece' : 'black-piece');
-                        }
-                        
-                        square.addEventListener('click', () => this.handleSquareClick(row, col));
-                        boardElement.appendChild(square);
-                    }
+                if (i < 40) {
+                    seat.style.background = '#2c3e50';
+                } else if (i < 70) {
+                    seat.style.background = 'repeating-linear-gradient(45deg, #2c3e50, #2c3e50 4px, #95a5a6 4px, #95a5a6 8px)';
                 }
                 
-                this.updateSquareHighlights();
-                this.updateVisualHints();
-            }
-            
-            updateSquareHighlights() {
-                document.querySelectorAll('.square').forEach(sq => {
-                    sq.classList.remove('selected');
-                });
-                
-                if (this.selectedPiece) {
-                    const selectedSquare = document.querySelector(
-                        `.square[data-row="${this.selectedPiece.row}"][data-col="${this.selectedPiece.col}"]`
-                    );
-                    if (selectedSquare) selectedSquare.classList.add('selected');
-                }
-            }
-            
-            handleSquareClick(row, col) {
-                if (!this.gameActive || this.promotionPending) return;
-                
-                const piece = this.board[row][col];
-                
-                if (this.selectedPiece && this.legalMoves.some(m => m.row === row && m.col === col)) {
-                    this.makeMove(this.selectedPiece.row, this.selectedPiece.col, row, col);
-                    return;
-                }
-                
-                if (piece) {
-                    const isWhitePiece = piece === piece.toUpperCase();
-                    if ((this.currentPlayer === 'white' && isWhitePiece) || 
-                        (this.currentPlayer === 'black' && !isWhitePiece)) {
-                        this.selectedPiece = { row, col, piece };
-                        this.legalMoves = this.calculateLegalMoves(row, col);
-                        this.updateSquareHighlights();
-                        this.updateVisualHints();
-                        return;
-                    }
-                }
-                
-                this.selectedPiece = null;
-                this.legalMoves = [];
-                this.updateSquareHighlights();
-                this.updateVisualHints();
-            }
-            
-            updateVisualHints() {
-                document.querySelectorAll('.move-hint, .danger-hint').forEach(hint => hint.remove());
-                
-                if (!this.gameActive) return;
-                
-                if (this.selectedPiece) {
-                    this.legalMoves.forEach(move => {
-                        const square = document.querySelector(
-                            `.square[data-row="${move.row}"][data-col="${move.col}"]`
-                        );
-                        
-                        if (square) {
-                            const hint = document.createElement('div');
-                            hint.className = 'move-hint';
-                            
-                            if (move.isCapture) {
-                                if (this.moveGivesCheck(this.selectedPiece.row, this.selectedPiece.col, move.row, move.col)) {
-                                    hint.classList.add('hint-check');
-                                    hint.title = 'Check!';
-                                } else {
-                                    hint.classList.add('hint-capture');
-                                    hint.title = 'Capture';
-                                }
-                            } else if (move.isPromotion) {
-                                hint.classList.add('hint-promotion');
-                                hint.title = 'Pawn Promotion';
-                            } else if (move.isCastleKingside || move.isCastleQueenside) {
-                                hint.classList.add('hint-castle');
-                                hint.title = 'Castling';
-                            } else {
-                                hint.classList.add('hint-safe');
-                                hint.title = 'Safe Move';
-                            }
-                            
-                            square.appendChild(hint);
-                        }
-                    });
-                }
-                
-                this.showThreatenedPieces();
-                this.updateStatusDisplay();
-            }
-            
-            showThreatenedPieces() {
-                const currentPlayer = this.currentPlayer;
-                const opponentColor = currentPlayer === 'white' ? 'black' : 'white';
-                
-                for (let row = 0; row < 8; row++) {
-                    for (let col = 0; col < 8; col++) {
-                        const piece = this.board[row][col];
-                        if (piece && 
-                            ((currentPlayer === 'white' && piece === piece.toUpperCase()) ||
-                             (currentPlayer === 'black' && piece === piece.toLowerCase()))) {
-                            
-                            if (this.isSquareAttacked(row, col, opponentColor)) {
-                                const square = document.querySelector(
-                                    `.square[data-row="${row}"][data-col="${col}"]`
-                                );
-                                
-                                if (square && !square.querySelector('.danger-hint')) {
-                                    const dangerHint = document.createElement('div');
-                                    dangerHint.className = 'danger-hint';
-                                    square.appendChild(dangerHint);
-                                    
-                                    const pieceName = this.getPieceName(piece);
-                                    dangerHint.title = `${pieceName} is under attack!`;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            moveGivesCheck(fromRow, fromCol, toRow, toCol) {
-                const tempBoard = JSON.parse(JSON.stringify(this.board));
-                const piece = tempBoard[fromRow][fromCol];
-                tempBoard[toRow][toCol] = piece;
-                tempBoard[fromRow][fromCol] = '';
-                
-                const opponentColor = this.currentPlayer === 'white' ? 'black' : 'white';
-                const kingSymbol = opponentColor === 'white' ? 'K' : 'k';
-                let kingRow = -1, kingCol = -1;
-                
-                for (let r = 0; r < 8; r++) {
-                    for (let c = 0; c < 8; c++) {
-                        if (tempBoard[r][c] === kingSymbol) {
-                            kingRow = r;
-                            kingCol = c;
-                            break;
-                        }
-                    }
-                    if (kingRow !== -1) break;
-                }
-                
-                for (let r = 0; r < 8; r++) {
-                    for (let c = 0; c < 8; c++) {
-                        const piece = tempBoard[r][c];
-                        if (piece && ((this.currentPlayer === 'white' && piece === piece.toUpperCase()) ||
-                                     (this.currentPlayer === 'black' && piece === piece.toLowerCase()))) {
-                            if (this.canPieceAttackSquare(r, c, kingRow, kingCol, tempBoard)) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-                
-                return false;
-            }
-            
-            canPieceAttackSquare(fromRow, fromCol, toRow, toCol, board) {
-                const piece = board[fromRow][fromCol];
-                if (!piece) return false;
-                
-                const isWhite = piece === piece.toUpperCase();
-                const pieceType = piece.toLowerCase();
-                
-                if (pieceType === 'p') {
-                    const direction = isWhite ? -1 : 1;
-                    const attackOffsets = [[direction, -1], [direction, 1]];
-                    
-                    for (const [dr, dc] of attackOffsets) {
-                        if (fromRow + dr === toRow && fromCol + dc === toCol) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                
-                if (pieceType === 'n') {
-                    const knightMoves = [
-                        [-2, -1], [-2, 1], [-1, -2], [-1, 2],
-                        [1, -2], [1, 2], [2, -1], [2, 1]
-                    ];
-                    
-                    for (const [dr, dc] of knightMoves) {
-                        if (fromRow + dr === toRow && fromCol + dc === toCol) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                
-                if (pieceType === 'b' || pieceType === 'q') {
-                    const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
-                    
-                    for (const [dr, dc] of directions) {
-                        let r = fromRow + dr;
-                        let c = fromCol + dc;
-                        
-                        while (this.isValidSquare(r, c)) {
-                            if (r === toRow && c === toCol) return true;
-                            if (board[r][c] !== '') break;
-                            r += dr;
-                            c += dc;
-                        }
-                    }
-                }
-                
-                if (pieceType === 'r' || pieceType === 'q') {
-                    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-                    
-                    for (const [dr, dc] of directions) {
-                        let r = fromRow + dr;
-                        let c = fromCol + dc;
-                        
-                        while (this.isValidSquare(r, c)) {
-                            if (r === toRow && c === toCol) return true;
-                            if (board[r][c] !== '') break;
-                            r += dr;
-                            c += dc;
-                        }
-                    }
-                }
-                
-                if (pieceType === 'k') {
-                    const kingMoves = [
-                        [-1, -1], [-1, 0], [-1, 1],
-                        [0, -1],           [0, 1],
-                        [1, -1],  [1, 0],  [1, 1]
-                    ];
-                    
-                    for (const [dr, dc] of kingMoves) {
-                        if (fromRow + dr === toRow && fromCol + dc === toCol) {
-                            return true;
-                        }
-                    }
-                }
-                
-                return false;
-            }
-            
-            updateStatusDisplay() {
-                const statusDisplay = document.getElementById('statusDisplay');
-                
-                if (this.isInCheck) {
-                    statusDisplay.className = 'status-indicator status-check';
-                    statusDisplay.textContent = 'CHECK! Your king is under attack!';
-                } else if (this.selectedPiece) {
-                    const pieceName = this.getPieceName(this.selectedPiece.piece);
-                    const legalMoves = this.legalMoves.length;
-                    const captures = this.legalMoves.filter(m => m.isCapture).length;
-                    const checks = this.legalMoves.filter(m => 
-                        this.moveGivesCheck(this.selectedPiece.row, this.selectedPiece.col, m.row, m.col)
-                    ).length;
-                    
-                    let status = `${pieceName} selected: ${legalMoves} moves available`;
-                    if (captures > 0) status += ` (${captures} captures)`;
-                    if (checks > 0) status += ` (${checks} check moves)`;
-                    
-                    statusDisplay.className = 'status-indicator status-safe';
-                    statusDisplay.textContent = status;
-                } else {
-                    const threatenedPieces = this.countThreatenedPieces();
-                    if (threatenedPieces > 0) {
-                        statusDisplay.className = 'status-indicator status-safe';
-                        statusDisplay.textContent = `${threatenedPieces} piece(s) under attack - Click to see moves`;
-                    } else {
-                        statusDisplay.className = 'status-indicator status-safe';
-                        statusDisplay.textContent = 'Click a piece to see visual move hints';
-                    }
-                }
-            }
-            
-            countThreatenedPieces() {
-                const currentPlayer = this.currentPlayer;
-                const opponentColor = currentPlayer === 'white' ? 'black' : 'white';
-                let count = 0;
-                
-                for (let row = 0; row < 8; row++) {
-                    for (let col = 0; col < 8; col++) {
-                        const piece = this.board[row][col];
-                        if (piece && 
-                            ((currentPlayer === 'white' && piece === piece.toUpperCase()) ||
-                             (currentPlayer === 'black' && piece === piece.toLowerCase()))) {
-                            
-                            if (this.isSquareAttacked(row, col, opponentColor)) {
-                                count++;
-                            }
-                        }
-                    }
-                }
-                
-                return count;
-            }
-            
-            getPieceName(piece) {
-                const names = {
-                    'P': 'Pawn', 'R': 'Rook', 'N': 'Knight', 'B': 'Bishop', 'Q': 'Queen', 'K': 'King',
-                    'p': 'Pawn', 'r': 'Rook', 'n': 'Knight', 'b': 'Bishop', 'q': 'Queen', 'k': 'King'
-                };
-                return names[piece] || 'Piece';
-            }
-            
-            calculateLegalMoves(row, col) {
-                const piece = this.board[row][col];
-                if (!piece) return [];
-                
-                const moves = [];
-                const isWhite = piece === piece.toUpperCase();
-                
-                switch (piece.toLowerCase()) {
-                    case 'p': moves.push(...this.getPawnMoves(row, col, isWhite)); break;
-                    case 'r': moves.push(...this.getRookMoves(row, col, isWhite)); break;
-                    case 'n': moves.push(...this.getKnightMoves(row, col, isWhite)); break;
-                    case 'b': moves.push(...this.getBishopMoves(row, col, isWhite)); break;
-                    case 'q': moves.push(...this.getQueenMoves(row, col, isWhite)); break;
-                    case 'k': moves.push(...this.getKingMoves(row, col, isWhite)); break;
-                }
-                
-                return moves.filter(move => !this.moveLeavesKingInCheck(row, col, move.row, move.col));
-            }
-            
-            getPawnMoves(row, col, isWhite) {
-                const moves = [];
-                const direction = isWhite ? -1 : 1;
-                const startRow = isWhite ? 6 : 1;
-                const promotionRow = isWhite ? 0 : 7;
-                
-                if (this.isValidSquare(row + direction, col) && !this.board[row + direction][col]) {
-                    moves.push({ 
-                        row: row + direction, 
-                        col, 
-                        isCapture: false,
-                        isPromotion: (row + direction) === promotionRow
-                    });
-                    
-                    if (row === startRow && !this.board[row + 2 * direction][col] && !this.board[row + direction][col]) {
-                        moves.push({ 
-                            row: row + 2 * direction, 
-                            col, 
-                            isCapture: false,
-                            isDoublePawnMove: true
-                        });
-                    }
-                }
-                
-                const captureOffsets = [[direction, -1], [direction, 1]];
-                captureOffsets.forEach(([dr, dc]) => {
-                    const newRow = row + dr;
-                    const newCol = col + dc;
-                    
-                    if (this.isValidSquare(newRow, newCol)) {
-                        const target = this.board[newRow][newCol];
-                        if (target && this.isOpponentPiece(target, isWhite)) {
-                            moves.push({ 
-                                row: newRow, 
-                                col: newCol, 
-                                isCapture: true,
-                                isPromotion: newRow === promotionRow
-                            });
-                        }
-                    }
-                });
-                
-                if (this.enPassantTarget) {
-                    const epRow = this.enPassantTarget.row;
-                    const epCol = this.enPassantTarget.col;
-                    
-                    if (epRow === row + direction && Math.abs(epCol - col) === 1) {
-                        moves.push({ 
-                            row: epRow, 
-                            col: epCol, 
-                            isCapture: true,
-                            isEnPassant: true
-                        });
-                    }
-                }
-                
-                return moves;
-            }
-            
-            getRookMoves(row, col, isWhite) {
-                return this.getSlidingMoves(row, col, isWhite, [
-                    [-1, 0], [1, 0], [0, -1], [0, 1]
-                ]);
-            }
-            
-            getKnightMoves(row, col, isWhite) {
-                const moves = [];
-                const knightMoves = [
-                    [-2, -1], [-2, 1], [-1, -2], [-1, 2],
-                    [1, -2], [1, 2], [2, -1], [2, 1]
-                ];
-                
-                knightMoves.forEach(([dr, dc]) => {
-                    const newRow = row + dr;
-                    const newCol = col + dc;
-                    
-                    if (this.isValidSquare(newRow, newCol)) {
-                        const target = this.board[newRow][newCol];
-                        if (!target || this.isOpponentPiece(target, isWhite)) {
-                            moves.push({ 
-                                row: newRow, 
-                                col: newCol, 
-                                isCapture: !!target 
-                            });
-                        }
-                    }
-                });
-                
-                return moves;
-            }
-            
-            getBishopMoves(row, col, isWhite) {
-                return this.getSlidingMoves(row, col, isWhite, [
-                    [-1, -1], [-1, 1], [1, -1], [1, 1]
-                ]);
-            }
-            
-            getQueenMoves(row, col, isWhite) {
-                return this.getSlidingMoves(row, col, isWhite, [
-                    [-1, 0], [1, 0], [0, -1], [0, 1],
-                    [-1, -1], [-1, 1], [1, -1], [1, 1]
-                ]);
-            }
-            
-            getKingMoves(row, col, isWhite) {
-                const moves = [];
-                const kingMoves = [
-                    [-1, -1], [-1, 0], [-1, 1],
-                    [0, -1],           [0, 1],
-                    [1, -1],  [1, 0],  [1, 1]
-                ];
-                
-                kingMoves.forEach(([dr, dc]) => {
-                    const newRow = row + dr;
-                    const newCol = col + dc;
-                    
-                    if (this.isValidSquare(newRow, newCol)) {
-                        const target = this.board[newRow][newCol];
-                        if (!target || this.isOpponentPiece(target, isWhite)) {
-                            moves.push({ 
-                                row: newRow, 
-                                col: newCol, 
-                                isCapture: !!target 
-                            });
-                        }
-                    }
-                });
-                
-                if (this.canCastleKingside(isWhite)) {
-                    moves.push({ 
-                        row: row, 
-                        col: col + 2, 
-                        isCapture: false,
-                        isCastleKingside: true
-                    });
-                }
-                
-                if (this.canCastleQueenside(isWhite)) {
-                    moves.push({ 
-                        row: row, 
-                        col: col - 2, 
-                        isCapture: false,
-                        isCastleQueenside: true
-                    });
-                }
-                
-                return moves;
-            }
-            
-            canCastleKingside(isWhite) {
-                const row = isWhite ? 7 : 0;
-                const rights = isWhite ? this.castlingRights.white : this.castlingRights.black;
-                
-                if (!rights.kingside || !rights.king) return false;
-                
-                if (this.board[row][5] !== '' || this.board[row][6] !== '') return false;
-                
-                if (this.isKingInCheck(isWhite ? 'white' : 'black')) return false;
-                
-                if (this.isSquareAttacked(row, 5, isWhite ? 'black' : 'white') || 
-                    this.isSquareAttacked(row, 6, isWhite ? 'black' : 'white')) {
-                    return false;
-                }
-                
-                return true;
-            }
-            
-            canCastleQueenside(isWhite) {
-                const row = isWhite ? 7 : 0;
-                const rights = isWhite ? this.castlingRights.white : this.castlingRights.black;
-                
-                if (!rights.queenside || !rights.king) return false;
-                
-                if (this.board[row][1] !== '' || this.board[row][2] !== '' || this.board[row][3] !== '') return false;
-                
-                if (this.isKingInCheck(isWhite ? 'white' : 'black')) return false;
-                
-                if (this.isSquareAttacked(row, 2, isWhite ? 'black' : 'white') || 
-                    this.isSquareAttacked(row, 3, isWhite ? 'black' : 'white')) {
-                    return false;
-                }
-                
-                return true;
-            }
-            
-            getSlidingMoves(row, col, isWhite, directions) {
-                const moves = [];
-                
-                directions.forEach(([dr, dc]) => {
-                    let currentRow = row + dr;
-                    let currentCol = col + dc;
-                    
-                    while (this.isValidSquare(currentRow, currentCol)) {
-                        const target = this.board[currentRow][currentCol];
-                        
-                        if (!target) {
-                            moves.push({ row: currentRow, col: currentCol, isCapture: false });
-                        } else {
-                            if (this.isOpponentPiece(target, isWhite)) {
-                                moves.push({ row: currentRow, col: currentCol, isCapture: true });
-                            }
-                            break;
-                        }
-                        
-                        currentRow += dr;
-                        currentCol += dc;
-                    }
-                });
-                
-                return moves;
-            }
-            
-            makeMove(fromRow, fromCol, toRow, toCol) {
-                const piece = this.board[fromRow][fromCol];
-                const target = this.board[toRow][toCol];
-                const isWhite = piece === piece.toUpperCase();
-                const moveInfo = this.legalMoves.find(m => m.row === toRow && m.col === toCol);
-                
-                const move = {
-                    from: { row: fromRow, col: fromCol },
-                    to: { row: toRow, col: toCol },
-                    piece: piece,
-                    captured: target,
-                    player: this.currentPlayer,
-                    moveInfo: moveInfo,
-                    enPassantTarget: this.enPassantTarget,
-                    castlingRights: JSON.parse(JSON.stringify(this.castlingRights))
-                };
-                
-                if (moveInfo?.isEnPassant) {
-                    const capturedRow = isWhite ? toRow + 1 : toRow - 1;
-                    const capturedPiece = this.board[capturedRow][toCol];
-                    this.capturedPieces[this.currentPlayer].push(capturedPiece);
-                    this.board[capturedRow][toCol] = '';
-                } else if (target) {
-                    this.capturedPieces[this.currentPlayer].push(target);
-                }
-                
-                this.board[toRow][toCol] = piece;
-                this.board[fromRow][fromCol] = '';
-                
-                if (piece.toLowerCase() === 'k') {
-                    if (isWhite) {
-                        this.kingPosition.white = { row: toRow, col: toCol };
-                    } else {
-                        this.kingPosition.black = { row: toRow, col: toCol };
-                    }
-                }
-                
-                if (moveInfo?.isCastleKingside) {
-                    const rookFromCol = 7;
-                    const rookToCol = 5;
-                    this.board[toRow][rookToCol] = this.board[toRow][rookFromCol];
-                    this.board[toRow][rookFromCol] = '';
-                } else if (moveInfo?.isCastleQueenside) {
-                    const rookFromCol = 0;
-                    const rookToCol = 3;
-                    this.board[toRow][rookToCol] = this.board[toRow][rookFromCol];
-                    this.board[toRow][rookFromCol] = '';
-                }
-                
-                if (moveInfo?.isPromotion) {
-                    this.promotionPending = true;
-                    this.promotionMove = { move: move, to: { row: toRow, col: toCol } };
-                    document.getElementById('promotionModal').style.display = 'flex';
-                    return;
-                }
-                
-                this.updateCastlingRights(fromRow, fromCol, piece);
-                this.updateEnPassantTarget(fromRow, fromCol, toRow, toCol, piece, moveInfo);
-                this.updateMoveCounters(piece, target);
-                
-                this.moveHistory.push(move);
-                this.finalizeMove();
-            }
-            
-            updateCastlingRights(fromRow, fromCol, piece) {
-                const isWhite = piece === piece.toUpperCase();
-                const color = isWhite ? 'white' : 'black';
-                
-                if (piece.toLowerCase() === 'k') {
-                    this.castlingRights[color].king = false;
-                    this.castlingRights[color].kingside = false;
-                    this.castlingRights[color].queenside = false;
-                }
-                
-                if (piece.toLowerCase() === 'r') {
-                    if (fromRow === (isWhite ? 7 : 0)) {
-                        if (fromCol === 0) {
-                            this.castlingRights[color].queenside = false;
-                        } else if (fromCol === 7) {
-                            this.castlingRights[color].kingside = false;
-                        }
-                    }
-                }
-            }
-            
-            updateEnPassantTarget(fromRow, fromCol, toRow, toCol, piece, moveInfo) {
-                this.enPassantTarget = null;
-                
-                if (moveInfo?.isDoublePawnMove) {
-                    const enPassantRow = fromRow + (toRow - fromRow) / 2;
-                    this.enPassantTarget = { row: enPassantRow, col: fromCol };
-                }
-            }
-            
-            updateMoveCounters(piece, captured) {
-                if (piece.toLowerCase() === 'p' || captured) {
-                    this.halfMoveClock = 0;
-                } else {
-                    this.halfMoveClock++;
-                }
-                
-                if (this.currentPlayer === 'black') {
-                    this.fullMoveNumber++;
-                }
-            }
-            
-            finalizeMove() {
-                this.currentPlayer = this.currentPlayer === 'white' ? 'black' : 'white';
-                this.selectedPiece = null;
-                this.legalMoves = [];
-                
-                // Auto-save after each move
-                this.autoSave();
-                
-                this.renderBoard();
-                this.updateDisplay();
-                this.checkGameEnd();
-            }
-            
-            choosePromotion(pieceType) {
-                if (!this.promotionPending || !this.promotionMove) return;
-                
-                const pieceMap = {
-                    'queen': this.currentPlayer === 'white' ? 'Q' : 'q',
-                    'rook': this.currentPlayer === 'white' ? 'R' : 'r',
-                    'bishop': this.currentPlayer === 'white' ? 'B' : 'b',
-                    'knight': this.currentPlayer === 'white' ? 'N' : 'n'
-                };
-                
-                this.board[this.promotionMove.to.row][this.promotionMove.to.col] = pieceMap[pieceType];
-                this.promotionMove.move.promotion = pieceType;
-                
-                document.getElementById('promotionModal').style.display = 'none';
-                this.promotionPending = false;
-                
-                this.currentPlayer = this.currentPlayer === 'white' ? 'black' : 'white';
-                this.selectedPiece = null;
-                this.legalMoves = [];
-                
-                // Auto-save after promotion
-                this.autoSave();
-                
-                this.renderBoard();
-                this.updateDisplay();
-                this.checkGameEnd();
-            }
-            
-            moveLeavesKingInCheck(fromRow, fromCol, toRow, toCol) {
-                const tempBoard = JSON.parse(JSON.stringify(this.board));
-                const piece = tempBoard[fromRow][fromCol];
-                
-                tempBoard[toRow][toCol] = piece;
-                tempBoard[fromRow][fromCol] = '';
-                
-                const kingSymbol = this.currentPlayer === 'white' ? 'K' : 'k';
-                let kingRow = -1, kingCol = -1;
-                
-                for (let r = 0; r < 8; r++) {
-                    for (let c = 0; c < 8; c++) {
-                        if (tempBoard[r][c] === kingSymbol) {
-                            kingRow = r;
-                            kingCol = c;
-                            break;
-                        }
-                    }
-                    if (kingRow !== -1) break;
-                }
-                
-                return this.isSquareAttacked(kingRow, kingCol, this.currentPlayer === 'white' ? 'black' : 'white', tempBoard);
-            }
-            
-            isSquareAttacked(row, col, attackerColor, customBoard = null) {
-                const board = customBoard || this.board;
-                
-                const pawnDirection = attackerColor === 'white' ? -1 : 1;
-                const pawnAttacks = [[pawnDirection, -1], [pawnDirection, 1]];
-                
-                for (const [dr, dc] of pawnAttacks) {
-                    const newRow = row + dr;
-                    const newCol = col + dc;
-                    
-                    if (this.isValidSquare(newRow, newCol)) {
-                        const piece = board[newRow][newCol];
-                        if (piece && piece.toLowerCase() === 'p' && 
-                            ((attackerColor === 'white' && piece === 'P') || 
-                             (attackerColor === 'black' && piece === 'p'))) {
-                            return true;
-                        }
-                    }
-                }
-                
-                const knightMoves = [
-                    [-2, -1], [-2, 1], [-1, -2], [-1, 2],
-                    [1, -2], [1, 2], [2, -1], [2, 1]
-                ];
-                
-                for (const [dr, dc] of knightMoves) {
-                    const newRow = row + dr;
-                    const newCol = col + dc;
-                    
-                    if (this.isValidSquare(newRow, newCol)) {
-                        const piece = board[newRow][newCol];
-                        if (piece && piece.toLowerCase() === 'n' && 
-                            ((attackerColor === 'white' && piece === 'N') || 
-                             (attackerColor === 'black' && piece === 'n'))) {
-                            return true;
-                        }
-                    }
-                }
-                
-                const directions = [
-                    [-1, 0], [1, 0], [0, -1], [0, 1],
-                    [-1, -1], [-1, 1], [1, -1], [1, 1]
-                ];
-                
-                for (const [dr, dc] of directions) {
-                    let currentRow = row + dr;
-                    let currentCol = col + dc;
-                    
-                    while (this.isValidSquare(currentRow, currentCol)) {
-                        const piece = board[currentRow][currentCol];
-                        
-                        if (piece) {
-                            if (attackerColor === 'white' && piece === piece.toUpperCase()) {
-                                const pieceType = piece.toLowerCase();
-                                if ((dr === 0 || dc === 0) && (pieceType === 'q' || pieceType === 'r')) {
-                                    return true;
-                                }
-                                if (dr !== 0 && dc !== 0 && (pieceType === 'q' || pieceType === 'b')) {
-                                    return true;
-                                }
-                                if (pieceType === 'k' && Math.abs(currentRow - row) <= 1 && Math.abs(currentCol - col) <= 1) {
-                                    return true;
-                                }
-                            } else if (attackerColor === 'black' && piece === piece.toLowerCase()) {
-                                const pieceType = piece.toLowerCase();
-                                if ((dr === 0 || dc === 0) && (pieceType === 'q' || pieceType === 'r')) {
-                                    return true;
-                                }
-                                if (dr !== 0 && dc !== 0 && (pieceType === 'q' || pieceType === 'b')) {
-                                    return true;
-                                }
-                                if (pieceType === 'k' && Math.abs(currentRow - row) <= 1 && Math.abs(currentCol - col) <= 1) {
-                                    return true;
-                                }
-                            }
-                            break;
-                        }
-                        
-                        currentRow += dr;
-                        currentCol += dc;
-                    }
-                }
-                
-                return false;
-            }
-            
-            isKingInCheck(color) {
-                const kingPos = color === 'white' ? this.kingPosition.white : this.kingPosition.black;
-                return this.isSquareAttacked(kingPos.row, kingPos.col, color === 'white' ? 'black' : 'white');
-            }
-            
-            isValidSquare(row, col) {
-                return row >= 0 && row < 8 && col >= 0 && col < 8;
-            }
-            
-            isOpponentPiece(piece, isWhite) {
-                return isWhite ? piece === piece.toLowerCase() : piece === piece.toUpperCase();
-            }
-            
-            squareToNotation(row, col) {
-                const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-                return letters[col] + (8 - row);
-            }
-            
-            checkGameEnd() {
-                if (this.isKingInCheck(this.currentPlayer)) {
-                    let hasLegalMoves = false;
-                    
-                    for (let r = 0; r < 8; r++) {
-                        for (let c = 0; c < 8; c++) {
-                            const piece = this.board[r][c];
-                            if (piece && ((this.currentPlayer === 'white' && piece === piece.toUpperCase()) || 
-                                          (this.currentPlayer === 'black' && piece === piece.toLowerCase()))) {
-                                const moves = this.calculateLegalMoves(r, c);
-                                if (moves.length > 0) {
-                                    hasLegalMoves = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (hasLegalMoves) break;
-                    }
-                    
-                    if (!hasLegalMoves) {
-                        const winner = this.currentPlayer === 'white' ? this.blackPlayerName : this.whitePlayerName;
-                        this.endGame(`Checkmate! ${winner} wins!`);
-                        return;
-                    }
-                } else {
-                    let hasLegalMoves = false;
-                    
-                    for (let r = 0; r < 8; r++) {
-                        for (let c = 0; c < 8; c++) {
-                            const piece = this.board[r][c];
-                            if (piece && ((this.currentPlayer === 'white' && piece === piece.toUpperCase()) || 
-                                          (this.currentPlayer === 'black' && piece === piece.toLowerCase()))) {
-                                const moves = this.calculateLegalMoves(r, c);
-                                if (moves.length > 0) {
-                                    hasLegalMoves = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (hasLegalMoves) break;
-                    }
-                    
-                    if (!hasLegalMoves) {
-                        this.endGame("Stalemate! Game is a draw.");
-                        return;
-                    }
-                }
-                
-                if (this.halfMoveClock >= 100) {
-                    this.endGame("Draw by 50-move rule.");
-                    return;
-                }
-            }
-            
-            endGame(message) {
-                this.gameActive = false;
-                document.getElementById('gameOverTitle').textContent = "Game Over";
-                document.getElementById('gameOverMessage').textContent = message;
-                document.getElementById('gameOverModal').style.display = 'flex';
-                
-                // Save final game state
-                this.autoSave();
-            }
-            
-            updateDisplay() {
-                const playerName = this.currentPlayer === 'white' ? this.whitePlayerName : this.blackPlayerName;
-                document.getElementById('currentPlayerDisplay').textContent = `${playerName}'s Turn`;
-                
-                document.getElementById('whiteKillCount').textContent = this.capturedPieces.white.length;
-                document.getElementById('blackKillCount').textContent = this.capturedPieces.black.length;
-                
-                document.getElementById('whiteKillsTitle').textContent = `${this.whitePlayerName} Kills`;
-                document.getElementById('blackKillsTitle').textContent = `${this.blackPlayerName} Kills`;
-                
-                const whiteKillsDiv = document.getElementById('whiteKilledPieces');
-                const blackKillsDiv = document.getElementById('blackKilledPieces');
-                
-                whiteKillsDiv.innerHTML = '';
-                blackKillsDiv.innerHTML = '';
-                
-                this.capturedPieces.white.forEach(piece => {
-                    const span = document.createElement('span');
-                    span.className = 'killed-piece';
-                    span.textContent = this.pieceSymbols[piece];
-                    span.style.color = 'black';
-                    whiteKillsDiv.appendChild(span);
-                });
-                
-                this.capturedPieces.black.forEach(piece => {
-                    const span = document.createElement('span');
-                    span.className = 'killed-piece';
-                    span.textContent = this.pieceSymbols[piece];
-                    span.style.color = 'white';
-                    span.style.textShadow = '1px 1px 1px rgba(0,0,0,0.5)';
-                    blackKillsDiv.appendChild(span);
-                });
-            }
-            
-            resetGame() {
-                this.createInitialBoard();
-                this.currentPlayer = 'white';
-                this.selectedPiece = null;
-                this.legalMoves = [];
-                this.moveHistory = [];
-                this.capturedPieces = { white: [], black: [] };
-                this.gameActive = true;
-                this.promotionPending = false;
-                this.promotionMove = null;
-                this.enPassantTarget = null;
-                this.castlingRights = {
-                    white: { king: true, queenside: true, kingside: true },
-                    black: { king: true, queenside: true, kingside: true }
-                };
-                this.halfMoveClock = 0;
-                this.fullMoveNumber = 1;
-                this.isInCheck = false;
-                this.kingPosition = { white: { row: 7, col: 4 }, black: { row: 0, col: 4 } };
-                
-                document.getElementById('promotionModal').style.display = 'none';
-                document.getElementById('gameOverModal').style.display = 'none';
-                
-                // Clear saved game
-                localStorage.removeItem(CHESS_SAVE_KEY);
-                
-                this.renderBoard();
-                this.updateDisplay();
-                showSaveStatus("Game reset ✓");
-            }
-            
-            undoMove() {
-                if (this.moveHistory.length === 0 || this.promotionPending) return;
-                
-                const lastMove = this.moveHistory.pop();
-                
-                this.board[lastMove.from.row][lastMove.from.col] = lastMove.piece;
-                this.board[lastMove.to.row][lastMove.to.col] = lastMove.captured || '';
-                
-                if (lastMove.piece.toLowerCase() === 'k') {
-                    const isWhite = lastMove.piece === 'K';
-                    if (isWhite) {
-                        this.kingPosition.white = lastMove.from;
-                    } else {
-                        this.kingPosition.black = lastMove.from;
-                    }
-                }
-                
-                if (lastMove.moveInfo?.isEnPassant) {
-                    const capturedRow = lastMove.player === 'white' ? lastMove.to.row + 1 : lastMove.to.row - 1;
-                    this.board[capturedRow][lastMove.to.col] = this.capturedPieces[lastMove.player].pop();
-                }
-                
-                if (lastMove.moveInfo?.isCastleKingside) {
-                    const rookRow = lastMove.to.row;
-                    this.board[rookRow][7] = this.board[rookRow][5];
-                    this.board[rookRow][5] = '';
-                } else if (lastMove.moveInfo?.isCastleQueenside) {
-                    const rookRow = lastMove.to.row;
-                    this.board[rookRow][0] = this.board[rookRow][3];
-                    this.board[rookRow][3] = '';
-                }
-                
-                if (lastMove.captured && !lastMove.moveInfo?.isEnPassant) {
-                    const index = this.capturedPieces[lastMove.player].indexOf(lastMove.captured);
-                    if (index > -1) {
-                        this.capturedPieces[lastMove.player].splice(index, 1);
-                    }
-                }
-                
-                this.currentPlayer = lastMove.player;
-                this.enPassantTarget = lastMove.enPassantTarget;
-                this.castlingRights = lastMove.castlingRights;
-                
-                if (lastMove.player === 'black') {
-                    this.fullMoveNumber--;
-                }
-                
-                this.selectedPiece = null;
-                this.legalMoves = [];
-                
-                // Save after undo
-                this.autoSave();
-                
-                this.renderBoard();
-                this.updateDisplay();
+                seatGrid.appendChild(seat);
             }
         }
+
+        // ==================== ইউজার কাউন্ট ====================
+        // কতজন ইউজার এই মুহূর্তে ওয়েবসাইট দেখছে
         
-        // Enter key to start game
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && document.getElementById('setupScreen').style.display !== 'none') {
-                startGame();
+        function updateUserCount() {
+            // ইউজার আইডি লোকাল স্টোরেজে সেভ করুন
+            let users = JSON.parse(localStorage.getItem('active_users')) || [];
+            
+            // নিজের আইডি যোগ করুন
+            if (!users.includes(userId)) {
+                users.push(userId);
             }
+            
+            // ৩০ সেকেন্ড পুরনো ইউজার রিমুভ করুন
+            const userTimestamps = JSON.parse(localStorage.getItem('user_timestamps')) || {};
+            userTimestamps[userId] = new Date().getTime();
+            localStorage.setItem('user_timestamps', JSON.stringify(userTimestamps));
+            
+            // একটিভ ইউজার ফিল্টার করুন
+            const now = new Date().getTime();
+            const activeUsers = [];
+            
+            for (let id of users) {
+                if (userTimestamps[id] && (now - userTimestamps[id] < 30000)) {
+                    activeUsers.push(id);
+                }
+            }
+            
+            localStorage.setItem('active_users', JSON.stringify(activeUsers));
+            document.getElementById('userCount').innerText = activeUsers.length;
+        }
+
+        // প্রতি ১০ সেকেন্ডে ইউজার কাউন্ট আপডেট করুন
+        setInterval(updateUserCount, 10000);
+        
+        // ==================== ইনিশিয়ালাইজ ====================
+        
+        // পেজ লোড হওয়ার সাথে সাথে
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSeats();
+            updateRemaining();
+            updateUserCount();
+            updateLastUpdateTime();
+            
+            // এডমিন প্যানেল ইনপুট ফিল্ড ভ্যালু সেট করুন
+            setTimeout(() => {
+                if (document.getElementById('bnpInput')) {
+                    document.getElementById('bnpInput').value = window.electionState.bnp;
+                }
+            }, 100);
         });
-        
-        // Also check if there's a saved game when page loads and show continue option
-        window.addEventListener('load', function() {
-            const savedGame = getSavedGame();
-            if (savedGame) {
-                console.log("Saved game detected - ready to continue");
-            }
-        });
+
+        // প্রতি মিনিটে লাস্ট আপডেট টাইম রিফ্রেশ করুন
+        setInterval(() => {
+            updateLastUpdateTime();
+        }, 60000);
     </script>
 </body>
 </html>
