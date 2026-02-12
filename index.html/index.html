@@ -585,6 +585,71 @@
             margin-left: 5px;
         }
         
+        /* Declared Seats */
+        .declared-seats {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .declared-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .declared-icon {
+            font-size: 28px;
+        }
+        
+        .declared-title {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .declared-number {
+            font-size: 42px;
+            font-weight: 700;
+        }
+        
+        /* Vote Stats */
+        .vote-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .vote-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        
+        .vote-icon {
+            font-size: 32px;
+        }
+        
+        .vote-info h4 {
+            color: #7f8c8d;
+            font-size: 14px;
+            font-weight: normal;
+            margin-bottom: 5px;
+        }
+        
+        .vote-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
         /* Disclaimer */
         .disclaimer {
             background: #fff3e0;
@@ -912,6 +977,34 @@
             </div>
         </div>
 
+        <!-- Declared Seats -->
+        <div class="declared-seats">
+            <div class="declared-header">
+                <span class="declared-icon">🏆</span>
+                <span class="declared-title">ঘোষিত আসন</span>
+            </div>
+            <div class="declared-number" id="declaredDisplay">০/৩০০</div>
+        </div>
+
+        <!-- Yes/No Votes -->
+        <div class="vote-stats">
+            <div class="vote-card">
+                <span class="vote-icon">👍</span>
+                <div class="vote-info">
+                    <h4>হ্যাঁ ভোট</h4>
+                    <div class="vote-number" id="yesVoteDisplay">০</div>
+                </div>
+            </div>
+            
+            <div class="vote-card">
+                <span class="vote-icon">👎</span>
+                <div class="vote-info">
+                    <h4>না ভোট</h4>
+                    <div class="vote-number" id="noVoteDisplay">০</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Disclaimer -->
         <div class="disclaimer">
             * এই তথ্য কাল্পনিক এবং শুধুমাত্র প্রদর্শনের উদ্দেশ্যে। প্রকৃত নির্বাচন ফলাফল নয়।
@@ -933,6 +1026,9 @@
             totalVoters: '১২.৬৬',
             votesCast: 0,
             votesCounted: 0,
+            declared: 0,
+            yesVote: 0,
+            noVote: 0,
             lastUpdate: new Date().toLocaleTimeString('bn-BD'),
             updateCount: 0
         };
@@ -1125,6 +1221,40 @@
             
             document.getElementById('remainingDisplay').innerText = remaining;
             document.getElementById('zeroLeft').innerText = total;
+        }
+
+        // ==================== ভোটার স্ট্যাটস ====================
+        
+        function updateVoters() {
+            const value = document.getElementById('voterInput').value;
+            document.getElementById('totalVoters').innerHTML = value + ' কোটি';
+        }
+
+        function updateVoteCast() {
+            const value = document.getElementById('voteCastInput').value;
+            document.getElementById('votesCast').innerText = value;
+            document.getElementById('votesCastPercent').innerText = value + '%';
+        }
+
+        function updateVoteCounted() {
+            const value = document.getElementById('voteCountedInput').value;
+            document.getElementById('votesCounted').innerText = value;
+            document.getElementById('votesCountedPercent').innerText = value + '%';
+        }
+
+        function updateDeclared() {
+            const value = document.getElementById('declaredInput').value;
+            document.getElementById('declaredDisplay').innerText = value + '/৩০০';
+        }
+
+        function updateYesVote() {
+            const value = document.getElementById('yesVoteInput').value;
+            document.getElementById('yesVoteDisplay').innerText = value;
+        }
+
+        function updateNoVote() {
+            const value = document.getElementById('noVoteInput').value;
+            document.getElementById('noVoteDisplay').innerText = value;
         }
 
         // ==================== সিট গ্রিড ====================
