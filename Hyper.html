@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valentine's Event</title>
+
+<style>
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family: Arial, sans-serif;
+  overflow:hidden;
+  background: linear-gradient(180deg,#e44fb7,#f06aa8,#7aa7ff);
+}
+
+/* Valentine Panel */
+.panel{
+  width:90%;
+  max-width:400px;
+  padding:40px 20px;
+  text-align:center;
+  border-radius:20px;
+  background: linear-gradient(180deg,#ff4fa8,#ff79c6);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  position:relative;
+  overflow:hidden;
+  color:white;
+}
+
+.title{
+  font-size:22px;
+  font-weight:bold;
+  margin-bottom:25px;
+}
+
+button{
+  padding:10px 18px;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+  margin:10px;
+  transition:0.3s ease;
+}
+
+.yes{
+  background:white;
+  color:#e44fb7;
+}
+
+.no{
+  background:white;
+  color:#555;
+  position:absolute;
+}
+
+/* Floating hearts */
+.heart{
+  position:absolute;
+  font-size:18px;
+  animation: floatUp 3s linear forwards;
+  pointer-events:none;
+}
+
+@keyframes floatUp{
+  from{ transform: translateY(0) scale(1); opacity:1; }
+  to{ transform: translateY(-400px) scale(1.5); opacity:0; }
+}
+
+.message{
+  margin-top:20px;
+  font-size:18px;
+  display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="panel" id="panel">
+  <div class="title">Will you be my Valentine? 💖</div>
+
+  <button class="yes" id="yesBtn">Yes</button>
+  <button class="no" id="noBtn">No</button>
+
+  <div class="message" id="message">Yay!! I knew it 💕💘</div>
+</div>
+
+<script>
+const panel = document.getElementById("panel");
+const yesBtn = document.getElementById("yesBtn");
+const noBtn = document.getElementById("noBtn");
+const message = document.getElementById("message");
+
+/* Create Heart */
+function createHeart(x,y,size=18){
+  const heart = document.createElement("div");
+  heart.className="heart";
+  heart.innerHTML="💖";
+  heart.style.left = x + "px";
+  heart.style.top = y + "px";
+  heart.style.fontSize = size + "px";
+  panel.appendChild(heart);
+  setTimeout(()=>heart.remove(),3000);
+}
+
+/* Heart burst */
+function heartBurst(x,y,count,size){
+  for(let i=0;i<count;i++){
+    setTimeout(()=>{
+      createHeart(
+        x + (Math.random()*60 - 30),
+        y + (Math.random()*40 - 20),
+        size
+      );
+    }, i*80);
+  }
+}
+
+/* Move No button */
+function moveNo(){
+  const maxX = panel.clientWidth - noBtn.offsetWidth;
+  const maxY = panel.clientHeight - noBtn.offsetHeight;
+  const newX = Math.random() * maxX;
+  const newY = Math.random() * maxY;
+  noBtn.style.left = newX + "px";
+  noBtn.style.top = newY + "px";
+
+  heartBurst(newX,newY,8,16);
+}
+
+noBtn.addEventListener("mouseenter", moveNo);
+noBtn.addEventListener("click", moveNo);
+noBtn.addEventListener("touchstart", moveNo);
+
+/* YES BUTTON */
+yesBtn.addEventListener("click", (e)=>{
+  message.style.display = "block";
+
+  const rect = yesBtn.getBoundingClientRect();
+  const panelRect = panel.getBoundingClientRect();
+
+  const x = rect.left - panelRect.left + rect.width/2;
+  const y = rect.top - panelRect.top;
+
+  heartBurst(x,y,25,24); // big explosion
+
+  // ✨ Remove No button smoothly
+  noBtn.style.opacity = "0";
+  noBtn.style.transform = "scale(0)";
+  setTimeout(()=> noBtn.remove(), 300);
+});
+</script>
+
+</body>
+</html>
